@@ -503,8 +503,10 @@
   },
   "appearance": {
     "theme": "Theme",
+    "themeAutoSeason": "Automatic (by season)",
     "themeDescriptions": {
-      "classic": "HomeGlow's own look."
+      "classic": "HomeGlow's own look.",
+      "auto-season": "Switches automatically between Bloom, Solstice, Harvest and Frost through the year."
     },
     "heading": "Appearance",
     "subtitle": "The household sets the default look. This display can override any part of it.",

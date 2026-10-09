@@ -503,8 +503,10 @@
   },
   "appearance": {
     "theme": "Tema",
+    "themeAutoSeason": "Automático (según la estación)",
     "themeDescriptions": {
-      "classic": "El aspecto propio de HomeGlow."
+      "classic": "El aspecto propio de HomeGlow.",
+      "auto-season": "Cambia automáticamente entre Bloom, Solstice, Harvest y Frost a lo largo del año."
     },
     "heading": "Apariencia",
     "subtitle": "El hogar define el aspecto predeterminado. Esta pantalla puede cambiar cualquier parte.",

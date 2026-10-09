@@ -313,6 +313,9 @@ const AppearanceSettings = () => {
               {t('admin:themes.notInstalled', { id: missingTheme })}
             </MenuItem>
           )}
+          <MenuItem value="auto-season">
+            {t('admin:appearance.themeAutoSeason')}
+          </MenuItem>
           {themes.map((theme) => (
             <MenuItem key={theme.id} value={theme.id}>
               {theme.name}
