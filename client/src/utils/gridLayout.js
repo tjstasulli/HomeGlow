@@ -1,5 +1,5 @@
 /** Canonical column count used when persisting layouts to the API. */
-export const NORMALIZED_GRID_COLS = 12;
+export const NORMALIZED_GRID_COLS = 48;
 
 /**
  * Clamp a layout item so it fits within the given column count.

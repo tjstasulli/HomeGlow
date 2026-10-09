@@ -37,15 +37,27 @@ const MobileDashboard = ({ widgets }) => {
           sx={{
             width: '100%',
             position: 'relative',
+            isolation: 'isolate',
             borderRadius: 'var(--hg-frame-radius)',
             padding: 'var(--hg-frame-inset)',
             backdropFilter: 'var(--hg-frame-backdrop)',
             overflow: 'hidden',
             border: '1px solid var(--card-border)',
-            background: widget.transparent ? 'transparent' : 'var(--hg-frame-bg)',
-            backgroundImage: widget.transparent ? 'none' : 'var(--hg-frame-image)',
-            boxShadow: widget.transparent ? 'none' : 'var(--shadow)',
             ...(needsFixedMobileHeight(widget) ? { height: '60vh', minHeight: 360 } : {}),
+            // See WidgetContainer.jsx: opacity fades the card only, not the
+            // content, via a pseudo-element behind it.
+            '&::before': {
+              content: '""',
+              position: 'absolute',
+              inset: 0,
+              borderRadius: 'inherit',
+              background: 'var(--hg-frame-bg)',
+              backgroundImage: 'var(--hg-frame-image)',
+              boxShadow: 'var(--shadow)',
+              opacity: (widget.opacity ?? 100) / 100,
+              zIndex: -1,
+              pointerEvents: 'none',
+            },
             '&::after': frameDecoration,
           }}
         >

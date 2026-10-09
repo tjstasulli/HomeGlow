@@ -1277,7 +1277,7 @@ const App = () => {
           name={plugin.name}
           theme={displayTheme}
           colors={themeColors}
-          transparentBackground={pSettings.transparent || false}
+          transparentBackground={resolveWidgetOpacity(pSettings) < 100}
           events={plugin.manifest?.events || []}
           hiddenControls={unprefixedHiddenControlsFor(hiddenControls, plugin.manifest?.id)}
         />,

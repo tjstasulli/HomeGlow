@@ -251,6 +251,7 @@ const schemaMigrations = [
   { schemaId: 27, migrationPath: './migrations/schema27-choreFollowups', },
   { schemaId: 28, migrationPath: './migrations/schema28-haPanels', },
   { schemaId: 29, migrationPath: './migrations/schema29-rowPitchScale', },
+  { schemaId: 30, migrationPath: './migrations/schema30-columnScale', },
 ];
 
 const ALLOWED_SCHEDULE_DURATIONS = new Set(['day-of', 'until-completed', 'once-completed']);

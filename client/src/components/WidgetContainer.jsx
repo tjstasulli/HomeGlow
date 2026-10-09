@@ -489,20 +489,36 @@ const WidgetContainer = ({
                   width: '100%',
                   height: '100%',
                   position: 'relative',
+                  isolation: 'isolate',
                   border: isSelected ? '3px solid var(--accent)' : '3px solid transparent',
                   borderRadius: 'var(--hg-frame-radius)',
                   padding: 'var(--hg-frame-inset)',
                   backdropFilter: 'var(--hg-frame-backdrop)',
-                  transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-                  boxShadow: isSelected
-                    ? '0 8px 32px rgba(var(--accent-rgb), 0.3)'
-                    : 'var(--hg-frame-shadow)',
-                  background: 'var(--hg-frame-bg)',
-                  backgroundImage: 'var(--hg-frame-image)',
-                  opacity: (widget.opacity ?? 100) / 100,
+                  transition: 'border-color 0.2s ease',
                   overflow: 'hidden',
                   cursor: locked ? 'default' : (isSelected ? 'move' : 'pointer'),
                   touchAction: locked ? 'auto' : (isSelected ? 'none' : 'manipulation'),
+                  // Opacity fades the card (background/shadow) only, via this
+                  // pseudo-element behind the content: a widget set to 0%
+                  // disappears the same way the old "Transparent Background"
+                  // toggle did (the card vanishes, the content stays legible,
+                  // the selection border stays usable), not by fading the
+                  // content itself into nothing.
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: 0,
+                    borderRadius: 'inherit',
+                    background: 'var(--hg-frame-bg)',
+                    backgroundImage: 'var(--hg-frame-image)',
+                    boxShadow: isSelected
+                      ? '0 8px 32px rgba(var(--accent-rgb), 0.3)'
+                      : 'var(--hg-frame-shadow)',
+                    opacity: (widget.opacity ?? 100) / 100,
+                    transition: 'box-shadow 0.2s ease',
+                    zIndex: -1,
+                    pointerEvents: 'none',
+                  },
                   '@media (hover: hover) and (pointer: fine)': {
                     '&:hover': {
                       border: locked
@@ -510,12 +526,14 @@ const WidgetContainer = ({
                         : (isSelected
                           ? '3px solid var(--accent)'
                           : '3px solid rgba(var(--accent-rgb), 0.3)'),
+                    },
+                    '&:hover::before': {
                       boxShadow: locked
                         ? 'var(--hg-frame-shadow)'
                         : (isSelected
                           ? '0 8px 32px rgba(var(--accent-rgb), 0.3)'
                           : 'var(--hg-frame-shadow-hover)'),
-                    }
+                    },
                   },
                   '&::after': frameDecoration,
                 }}
@@ -591,9 +609,15 @@ const WidgetContainer = ({
                     refreshNonce: refreshKeys[widget.id] || 0,
                     isActive,
                     activeTabId,
+                    // Normalized back to the pre-finer-grid units (12 live
+                    // columns, un-doubled rows) that widgets like
+                    // WeatherWidget's compact/medium/full thresholds are
+                    // written against, so widening the live grid and halving
+                    // the row pitch don't themselves change a widget's
+                    // self-reported size class.
                     widgetSize: {
-                      width: effectiveLayout.w,
-                      height: effectiveLayout.h,
+                      width: Math.round((effectiveLayout.w * 12) / gridCols),
+                      height: effectiveLayout.h / 2,
                     },
                   })}
                 </Box>

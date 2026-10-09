@@ -6,11 +6,12 @@ if (!context || !context.db) {
 
 const { db, schemaIdKey, targetSchemaId } = context;
 
-// The grid's row pitch (client/src/utils/gridMetrics.js) is halving (116px ->
-// 58px, GRID_PITCH), so a widget's stored row-unit fields must double to keep
-// its on-screen height exactly what it was. layout_x/layout_w stay as they
-// are: those are normalized 12-column units, already independent of pixel
-// pitch.
+// NORMALIZED_GRID_COLS (client/src/utils/gridLayout.js) is widening 12 -> 48
+// to give horizontal resize the same finer-grained precision the row pitch
+// already has, so a widget's stored column-unit fields must quadruple to
+// land in the same proportional place on the new, finer normalized grid.
+// layout_y/layout_h stay as they are: those are row units, untouched by this
+// migration (see schema29, which already scaled them for the row pitch).
 function parseConfigJson(configJson) {
     if (!configJson) return {};
     try {
@@ -24,10 +25,10 @@ function parseConfigJson(configJson) {
     return {};
 }
 
-const ROW_PITCH_SCALE = 2;
+const COLUMN_SCALE = 4;
 
 try {
-    console.log(`=== Starting row pitch scale migration to version ${targetSchemaId} ===`);
+    console.log(`=== Starting column scale migration to version ${targetSchemaId} ===`);
 
     db.exec('BEGIN');
     try {
@@ -40,12 +41,12 @@ try {
             Object.keys(layout).forEach((widgetName) => {
                 const entry = layout[widgetName];
                 if (!entry || typeof entry !== 'object') return;
-                if (entry.layout_y != null && Number.isFinite(Number(entry.layout_y))) {
-                    entry.layout_y = Number(entry.layout_y) * ROW_PITCH_SCALE;
+                if (entry.layout_x != null && Number.isFinite(Number(entry.layout_x))) {
+                    entry.layout_x = Number(entry.layout_x) * COLUMN_SCALE;
                     changed = true;
                 }
-                if (entry.layout_h != null && Number.isFinite(Number(entry.layout_h))) {
-                    entry.layout_h = Number(entry.layout_h) * ROW_PITCH_SCALE;
+                if (entry.layout_w != null && Number.isFinite(Number(entry.layout_w))) {
+                    entry.layout_w = Number(entry.layout_w) * COLUMN_SCALE;
                     changed = true;
                 }
             });
@@ -59,13 +60,13 @@ try {
             String(targetSchemaId)
         );
         db.exec('COMMIT');
-        console.log(`=== Row pitch scale migration completed successfully (version ${targetSchemaId}) ===`);
+        console.log(`=== Column scale migration completed successfully (version ${targetSchemaId}) ===`);
     } catch (migrationError) {
         db.exec('ROLLBACK');
         throw migrationError;
     }
 } catch (error) {
-    console.error('=== Row pitch scale migration failed ===');
+    console.error('=== Column scale migration failed ===');
     console.error('Error:', error);
     throw error;
 }
