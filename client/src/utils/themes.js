@@ -554,3 +554,13 @@ export function resolveSeasonalThemeId(nowMs, lat) {
   const southern = typeof lat === 'number' && Number.isFinite(lat) && lat < 0;
   return (southern ? SOUTHERN_SEASON_BY_MONTH : NORTHERN_SEASON_BY_MONTH)[month];
 }
+
+/**
+ * The real theme id a stored `theme` value means right now: itself, unless
+ * it's the 'auto-season' sentinel, which resolves through
+ * resolveSeasonalThemeId. The one place both app.jsx and AppearanceSettings
+ * turn a stored theme value into an id safe to look up in the registry.
+ */
+export function effectiveThemeId(themeId, lat, nowMs = Date.now()) {
+  return themeId === 'auto-season' ? resolveSeasonalThemeId(nowMs, lat) : themeId;
+}

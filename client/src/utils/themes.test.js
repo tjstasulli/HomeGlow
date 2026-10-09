@@ -8,6 +8,7 @@ import {
   discoverThemes,
   applyThemeTokens,
   muiThemeOptions,
+  effectiveThemeId,
   resolveSeasonalThemeId,
   resolveTheme,
   themeDisplayMode,
@@ -238,5 +239,24 @@ describe('resolveSeasonalThemeId', () => {
     expect(resolveSeasonalThemeId(at(11, 15), undefined)).toBe('frost');
     expect(resolveSeasonalThemeId(at(11, 15), 'not-a-number')).toBe('frost');
     expect(resolveSeasonalThemeId(at(11, 15), NaN)).toBe('frost');
+  });
+});
+
+describe('effectiveThemeId', () => {
+  const at = (monthIndex, day) => new Date(2026, monthIndex, day).getTime();
+
+  it('passes a real theme id through unchanged', () => {
+    expect(effectiveThemeId('classic', undefined, at(11, 15))).toBe('classic');
+    expect(effectiveThemeId('bloom', undefined, at(11, 15))).toBe('bloom');
+  });
+
+  it('resolves the auto-season sentinel the same way resolveSeasonalThemeId does', () => {
+    expect(effectiveThemeId('auto-season', undefined, at(11, 15))).toBe('frost');
+    expect(effectiveThemeId('auto-season', -33.9, at(11, 15))).toBe('solstice');
+  });
+
+  it('defaults nowMs to the current time when not given', () => {
+    const id = effectiveThemeId('auto-season', undefined);
+    expect(['bloom', 'solstice', 'harvest', 'frost']).toContain(id);
   });
 });

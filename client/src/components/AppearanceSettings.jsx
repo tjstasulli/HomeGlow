@@ -30,7 +30,7 @@ import {
   pruneMatchingOverrides,
   resolveAppearance,
 } from '../utils/appearance.js';
-import { resolveTheme } from '../utils/themes.js';
+import { effectiveThemeId, resolveTheme } from '../utils/themes.js';
 import { useThemeRegistry } from '../utils/installedThemes.js';
 import { pickWeatherScene, weatherScenesOf } from '../utils/weatherScenes.js';
 import { PREVIEW_MS, setWeatherScenePreview, useWeatherScenePreview } from '../utils/useWeatherCondition.js';
@@ -61,8 +61,12 @@ const AppearanceSettings = () => {
   const [pickerAnchor, setPickerAnchor] = useState({ key: null, el: null });
   const [message, setMessage] = useState(null);
   // A chosen theme that has since been removed still shows, as not installed.
-  const missingTheme = draft?.theme && !themes.some((theme) => theme.id === draft.theme) ? draft.theme : null;
-  const chosenTheme = themes.find((theme) => theme.id === draft?.theme);
+  // 'auto-season' is a sentinel, never itself in the registry, so it's never
+  // "missing" — it's resolved to a real id (via effectiveThemeId) for every
+  // other lookup below instead.
+  const missingTheme = draft?.theme && draft.theme !== 'auto-season'
+    && !themes.some((theme) => theme.id === draft.theme) ? draft.theme : null;
+  const chosenTheme = themes.find((theme) => theme.id === effectiveThemeId(draft?.theme, draft?.autoDark?.lat));
   const [saving, setSaving] = useState(false);
 
   // Success fades; a problem stays until dismissed, so it cannot be missed.
@@ -118,7 +122,7 @@ const AppearanceSettings = () => {
 
   // A theme with weather scenes (#247) shows the weather at the same location
   // Auto mode uses for sunrise and sunset.
-  const draftWeather = draft ? resolveTheme(draft.theme, themes, assets).weather : null;
+  const draftWeather = draft ? resolveTheme(effectiveThemeId(draft.theme, draft.autoDark?.lat), themes, assets).weather : null;
   const draftLat = draft?.autoDark?.lat;
   const draftLon = draft?.autoDark?.lon;
 
@@ -283,7 +287,7 @@ const AppearanceSettings = () => {
     </Box>
   );
 
-  const resolvedTheme = resolveTheme(draft.theme, themes, assets);
+  const resolvedTheme = resolveTheme(effectiveThemeId(draft.theme, draft.autoDark?.lat), themes, assets);
   const sceneLabel = (key) => (key === 'default'
     ? t('admin:appearance.weather.defaultScene')
     : capitalize(t(`weather:conditions.${key}`)));

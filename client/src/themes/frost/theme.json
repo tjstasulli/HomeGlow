@@ -33,7 +33,7 @@
       "--hg-frame-radius": "14px",
       "--hg-frame-shadow": "0 8px 24px rgba(79, 166, 216, 0.12)",
       "--hg-button-bg": "#4FA6D8",
-      "--hg-button-text": "#FFFFFF"
+      "--hg-button-text": "#26333A"
     },
     "dark": {
       "--background": "#080E14",
