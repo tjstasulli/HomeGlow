@@ -120,11 +120,11 @@ const WidgetContainer = ({
 
         // Responsive grid columns
         if (width < 600) {
-          setGridCols(4); // Mobile: 4 columns
+          setGridCols(16); // Mobile: 16 columns
         } else if (width < 960) {
-          setGridCols(8); // Tablet: 8 columns
+          setGridCols(32); // Tablet: 32 columns
         } else {
-          setGridCols(12); // Desktop: 12 columns
+          setGridCols(48); // Desktop: 48 columns
         }
       }
     };
@@ -446,7 +446,7 @@ const WidgetContainer = ({
             handle: '.drag-handle',
             cancel: '.widget-content',
           }}
-          resizeConfig={{ enabled: true, handles: ['n', 's', 'e', 'w'] }}
+          resizeConfig={{ enabled: true, handles: ['n', 's', 'e', 'w', 'ne', 'nw', 'se', 'sw'] }}
           compactor={GRID_COMPACTOR}
           onLayoutChange={handleLayoutChange}
         >
