@@ -530,3 +530,27 @@ export function muiThemeOptions(theme, displayMode = 'light') {
     },
   };
 }
+
+// Meteorological seasons: fixed calendar months, no equinox lookup. Northern
+// hemisphere by default (or when lat isn't a usable number); south of the
+// equator the same boundaries apply six months offset.
+const NORTHERN_SEASON_BY_MONTH = [
+  'frost', 'frost',                          // Jan, Feb
+  'bloom', 'bloom', 'bloom',                 // Mar, Apr, May
+  'solstice', 'solstice', 'solstice',        // Jun, Jul, Aug
+  'harvest', 'harvest', 'harvest',           // Sep, Oct, Nov
+  'frost',                                   // Dec
+];
+const SOUTHERN_SEASON_BY_MONTH = [
+  'solstice', 'solstice',
+  'harvest', 'harvest', 'harvest',
+  'frost', 'frost', 'frost',
+  'bloom', 'bloom', 'bloom',
+  'solstice',
+];
+
+export function resolveSeasonalThemeId(nowMs, lat) {
+  const month = new Date(nowMs).getMonth();
+  const southern = typeof lat === 'number' && Number.isFinite(lat) && lat < 0;
+  return (southern ? SOUTHERN_SEASON_BY_MONTH : NORTHERN_SEASON_BY_MONTH)[month];
+}

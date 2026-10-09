@@ -8,6 +8,7 @@ import {
   discoverThemes,
   applyThemeTokens,
   muiThemeOptions,
+  resolveSeasonalThemeId,
   resolveTheme,
   themeDisplayMode,
   themeTokens,
@@ -203,5 +204,39 @@ describe('muiThemeOptions', () => {
     expect(options.palette.mode).toBe('dark');
     expect(options.palette.primary.main).toBe('#ff9900');
     expect(options.components.MuiButton.styleOverrides.root.borderRadius).toBe(999);
+  });
+});
+
+describe('resolveSeasonalThemeId', () => {
+  const at = (monthIndex, day) => new Date(2026, monthIndex, day).getTime();
+
+  it('maps each Northern-hemisphere month to its season', () => {
+    expect(resolveSeasonalThemeId(at(2, 15))).toBe('bloom');   // March
+    expect(resolveSeasonalThemeId(at(4, 15))).toBe('bloom');   // May
+    expect(resolveSeasonalThemeId(at(5, 15))).toBe('solstice'); // June
+    expect(resolveSeasonalThemeId(at(7, 15))).toBe('solstice'); // August
+    expect(resolveSeasonalThemeId(at(8, 15))).toBe('harvest');  // September
+    expect(resolveSeasonalThemeId(at(10, 15))).toBe('harvest'); // November
+    expect(resolveSeasonalThemeId(at(11, 15))).toBe('frost');   // December
+    expect(resolveSeasonalThemeId(at(1, 15))).toBe('frost');    // February
+  });
+
+  it('flips to the opposite season south of the equator', () => {
+    expect(resolveSeasonalThemeId(at(2, 15), -33.9)).toBe('harvest'); // March, Sydney
+    expect(resolveSeasonalThemeId(at(11, 15), -33.9)).toBe('solstice'); // December, Sydney
+  });
+
+  it('gets the month boundaries right', () => {
+    expect(resolveSeasonalThemeId(at(1, 28))).toBe('frost');   // Feb 28
+    expect(resolveSeasonalThemeId(at(2, 1))).toBe('bloom');    // Mar 1
+    expect(resolveSeasonalThemeId(at(7, 31))).toBe('solstice'); // Aug 31
+    expect(resolveSeasonalThemeId(at(8, 1))).toBe('harvest');   // Sep 1
+  });
+
+  it('defaults to the Northern hemisphere with no latitude', () => {
+    expect(resolveSeasonalThemeId(at(11, 15))).toBe('frost');
+    expect(resolveSeasonalThemeId(at(11, 15), undefined)).toBe('frost');
+    expect(resolveSeasonalThemeId(at(11, 15), 'not-a-number')).toBe('frost');
+    expect(resolveSeasonalThemeId(at(11, 15), NaN)).toBe('frost');
   });
 });
