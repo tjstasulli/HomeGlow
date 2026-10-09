@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  applyResizability,
   NORMALIZED_GRID_COLS,
   clampLayoutItem,
   layoutItemFromNormalized,
@@ -178,5 +179,37 @@ describe('layoutToNormalized', () => {
     expect(edges(throughStored)).toEqual(edges(liveAt(8)));
     // Column to column re-rounds through the coarse grid: 'b' becomes 2..6.
     expect(scaleLayoutItem(portrait[1], 4, 8)).toMatchObject({ x: 2, w: 4 });
+  });
+});
+
+describe('applyResizability', () => {
+  const items = [
+    { i: 'a', x: 0, y: 0, w: 3, h: 2 },
+    { i: 'b', x: 3, y: 0, w: 3, h: 2 },
+  ];
+
+  it('marks only the selected item resizable', () => {
+    const result = applyResizability(items, 'a', false);
+    expect(result.find((item) => item.i === 'a').isResizable).toBe(true);
+    expect(result.find((item) => item.i === 'b').isResizable).toBe(false);
+  });
+
+  it('marks nothing resizable when nothing is selected', () => {
+    const result = applyResizability(items, null, false);
+    expect(result.every((item) => item.isResizable === false)).toBe(true);
+  });
+
+  it('marks nothing resizable when locked, even if something is selected', () => {
+    const result = applyResizability(items, 'a', true);
+    expect(result.every((item) => item.isResizable === false)).toBe(true);
+  });
+
+  it('preserves every other field on each item', () => {
+    const result = applyResizability(items, 'a', false);
+    expect(result.find((item) => item.i === 'a')).toMatchObject(items[0]);
+  });
+
+  it('returns an empty array for an empty layout', () => {
+    expect(applyResizability([], 'a', false)).toEqual([]);
   });
 });

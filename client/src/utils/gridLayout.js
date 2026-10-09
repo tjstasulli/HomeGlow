@@ -122,3 +122,14 @@ export function layoutToNormalized(items, cols, storedById = new Map()) {
     return clampLayoutItem({ ...normalized, x, w: Math.max(1, end - x) }, NORMALIZED_GRID_COLS);
   });
 }
+
+/**
+ * Mark exactly one item resizable: the selected one, and only while unlocked.
+ * Mirrors the visibility rule the old resize buttons followed.
+ */
+export function applyResizability(items, selectedWidgetId, locked) {
+  return items.map((item) => ({
+    ...item,
+    isResizable: !locked && item.i === selectedWidgetId,
+  }));
+}
