@@ -130,7 +130,12 @@ body {
 }
 
 .react-grid-item.selected > .react-resizable-handle {
+  /* react-grid-layout's own CSS defaults this to opacity: 0, shown only on
+     .react-grid-item:hover -- no good on a touch display with no hover.
+     Compound selector (not :has(.selected)): react-grid-layout clones its
+     classes onto this same element, so .selected is never a descendant. */
   display: block;
+  opacity: 1;
 }
 
 .react-grid-item.selected > .react-resizable-handle:hover {
