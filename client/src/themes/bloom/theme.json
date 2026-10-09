@@ -1,0 +1,83 @@
+{
+  "manifestVersion": 4,
+  "id": "bloom",
+  "name": "Bloom",
+  "version": "1.0.0",
+  "author": "HomeGlow",
+  "description": "Soft pastels with petals drifting by, birds and bees on a sunny day, fireflies after dark.",
+  "extends": "classic",
+  "modes": ["light", "dark"],
+  "colors": { "primary": "#FBF5F8", "secondary": "#F2A6C6", "accent": "#F2A6C6" },
+  "fonts": [
+    { "family": "Inter", "weight": 400, "src": "fonts/Inter-Regular.woff2" },
+    { "family": "Inter", "weight": 600, "src": "fonts/Inter-SemiBold.woff2" },
+    { "family": "Inter", "weight": 700, "src": "fonts/Inter-Bold.woff2" }
+  ],
+  "tokens": {
+    "all": {
+      "--hg-font-body": "'Inter', sans-serif",
+      "--hg-font-heading": "'Inter', sans-serif",
+      "--hg-grid-gap": "24px",
+      "--hg-button-radius": "999px",
+      "--hg-button-weight": "600"
+    },
+    "light": {
+      "--background": "#FBF5F8",
+      "--surface": "#FFFFFF",
+      "--text": "#4A3F45",
+      "--text-secondary": "#8A7A82",
+      "--border": "#F3E3EC",
+      "--accent": "#F2A6C6",
+      "--accent-rgb": "242, 166, 198",
+      "--hg-frame-bg": "#FFFFFF",
+      "--hg-frame-radius": "20px",
+      "--hg-frame-shadow": "0 10px 28px rgba(242, 166, 198, 0.18)",
+      "--hg-button-bg": "#F2A6C6",
+      "--hg-button-text": "#4A3F45"
+    },
+    "dark": {
+      "--background": "#221B22",
+      "--surface": "#2E2630",
+      "--text": "#F3E9ED",
+      "--text-secondary": "#B49FA8",
+      "--border": "#3A2F38",
+      "--accent": "#E88FB3",
+      "--accent-rgb": "232, 143, 179",
+      "--hg-frame-bg": "#2E2630",
+      "--hg-frame-radius": "18px",
+      "--hg-frame-shadow": "none",
+      "--hg-button-bg": "#E88FB3",
+      "--hg-button-text": "#221B22"
+    }
+  },
+  "ambience": [
+    { "layer": "field", "modes": ["light"], "strength": "soft", "spacing": 220, "seconds": 60 },
+    { "layer": "particles", "src": "assets/petal.svg", "motion": "fall", "count": 7, "size": [8, 14], "seconds": [14, 22], "drift": 50, "opacity": 0.8 }
+  ],
+  "weather": {
+    "scenes": {
+      "sunny": {
+        "ambience": [
+          { "layer": "field", "modes": ["light"], "strength": "soft", "spacing": 220, "seconds": 60 },
+          { "layer": "particles", "src": "assets/petal.svg", "motion": "fall", "count": 7, "size": [8, 14], "seconds": [14, 22], "drift": 50, "opacity": 0.8 },
+          { "layer": "flyby", "modes": ["light"], "pictures": [{ "src": "assets/bird.svg", "aspect": 2, "height": 4 }], "height": [55, 70], "every": [40, 90], "seconds": [16, 24], "span": [10, 60] },
+          { "layer": "flyby", "modes": ["light"], "pictures": [{ "src": "assets/bee.svg", "aspect": 1.25, "height": 2.5 }], "height": [20, 35], "every": [20, 50], "seconds": [6, 10], "span": [5, 80] },
+          { "layer": "particles", "modes": ["dark"], "motion": "twinkle", "colors": ["#F7E79A", "#E8D06A"], "count": 10, "size": [2, 4], "seconds": [4, 9], "opacity": 0.75 }
+        ]
+      },
+      "rainy": {
+        "ambience": [
+          { "layer": "field", "modes": ["light"], "strength": "soft", "spacing": 220, "seconds": 60 },
+          { "layer": "particles", "motion": "fall", "colors": ["#A9B8C6"], "count": 24, "size": [2, 4], "seconds": [3, 5], "opacity": 0.5 }
+        ]
+      },
+      "lightning": {
+        "ambience": [
+          { "layer": "field", "modes": ["light"], "strength": "soft", "spacing": 220, "seconds": 60 },
+          { "layer": "particles", "motion": "fall", "colors": ["#A9B8C6"], "count": 24, "size": [2, 4], "seconds": [3, 5], "opacity": 0.5 },
+          { "layer": "flash", "color": "#F3E9ED", "every": [25, 90], "strength": 0.3, "double": false }
+        ]
+      }
+    }
+  }
+}
