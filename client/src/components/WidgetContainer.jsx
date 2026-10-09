@@ -452,10 +452,6 @@ const WidgetContainer = ({
         >
           {widgets.map((widget) => {
             const isSelected = !locked && selectedWidget === widget.id;
-            // A transparent widget shows the page background through its box: no
-            // card color and no resting shadow, which would otherwise draw the
-            // rectangle the setting is meant to remove. The selection border stays.
-            const restingShadow = widget.transparent ? 'none' : 'var(--hg-frame-shadow)';
             const currentLayout = layout.find(l => l.i === widget.id);
             const fallbackLayout = {
               i: widget.id,
@@ -500,9 +496,10 @@ const WidgetContainer = ({
                   transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
                   boxShadow: isSelected
                     ? '0 8px 32px rgba(var(--accent-rgb), 0.3)'
-                    : restingShadow,
-                  background: widget.transparent ? 'transparent' : 'var(--hg-frame-bg)',
-                  backgroundImage: widget.transparent ? 'none' : 'var(--hg-frame-image)',
+                    : 'var(--hg-frame-shadow)',
+                  background: 'var(--hg-frame-bg)',
+                  backgroundImage: 'var(--hg-frame-image)',
+                  opacity: (widget.opacity ?? 100) / 100,
                   overflow: 'hidden',
                   cursor: locked ? 'default' : (isSelected ? 'move' : 'pointer'),
                   touchAction: locked ? 'auto' : (isSelected ? 'none' : 'manipulation'),
@@ -514,7 +511,7 @@ const WidgetContainer = ({
                           ? '3px solid var(--accent)'
                           : '3px solid rgba(var(--accent-rgb), 0.3)'),
                       boxShadow: locked
-                        ? restingShadow
+                        ? 'var(--hg-frame-shadow)'
                         : (isSelected
                           ? '0 8px 32px rgba(var(--accent-rgb), 0.3)'
                           : 'var(--hg-frame-shadow-hover)'),

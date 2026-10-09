@@ -52,7 +52,7 @@ import { useWeatherCondition, useWeatherScenePreview } from './utils/useWeatherC
 import { pickWeatherScene } from './utils/weatherScenes.js';
 import { ThemeContext } from './themes/engine/ThemeContext.js';
 import ThemeAmbience from './themes/engine/ThemeAmbience.jsx';
-import { normalizeWidgetSettings, BASE_WIDGET_SETTINGS } from './utils/widgetSettings.js';
+import { normalizeWidgetSettings, BASE_WIDGET_SETTINGS, resolveWidgetOpacity } from './utils/widgetSettings.js';
 import { buildMobileWidgetList } from './utils/mobileWidgets.js';
 import { CORE_CONTROLS, resolveHiddenControls } from './utils/displayControls.js';
 import { parseAdminHash, clearAdminHash } from './utils/adminNavigation.js';
@@ -1178,7 +1178,7 @@ const App = () => {
       const dbLayout = getWidgetLayoutForTab('calendar', activeTab);
       result.push({
         id: 'calendar-widget',
-        transparent: Boolean(widgetSettings.calendar.transparent),
+        opacity: resolveWidgetOpacity(widgetSettings.calendar),
         defaultPosition: { x: 0, y: 0 },
         defaultSize: { width: 8, height: 10 },
         minWidth: 2,
@@ -1200,7 +1200,7 @@ const App = () => {
       const dbLayout = getWidgetLayoutForTab('weather', activeTab);
       result.push({
         id: 'weather-widget',
-        transparent: Boolean(widgetSettings.weather.transparent),
+        opacity: resolveWidgetOpacity(widgetSettings.weather),
         defaultPosition: { x: 8, y: 0 },
         defaultSize: { width: 4, height: 6 },
         minWidth: 2,
@@ -1224,7 +1224,7 @@ const App = () => {
       const dbLayout = getWidgetLayoutForTab('chores', activeTab);
       result.push({
         id: 'chores-widget',
-        transparent: Boolean(widgetSettings.chores.transparent),
+        opacity: resolveWidgetOpacity(widgetSettings.chores),
         defaultPosition: { x: 0, y: 10 },
         defaultSize: { width: 6, height: 8 },
         minWidth: 2,
@@ -1242,7 +1242,7 @@ const App = () => {
       const dbLayout = getWidgetLayoutForTab('photos', activeTab);
       result.push({
         id: 'photos-widget',
-        transparent: Boolean(widgetSettings.photos.transparent),
+        opacity: resolveWidgetOpacity(widgetSettings.photos),
         defaultPosition: { x: 6, y: 10 },
         defaultSize: { width: 6, height: 8 },
         minWidth: 2,
@@ -1266,7 +1266,7 @@ const App = () => {
       const dbLayout = getWidgetLayoutForTab(pluginWidgetName, activeTab);
       result.push({
         id: `plugin-${plugin.filename}`,
-        transparent: Boolean(pSettings.transparent),
+        opacity: resolveWidgetOpacity(pSettings),
         defaultPosition: { x: 0, y: 0 },
         defaultSize: { width: 6, height: 8 },
         minWidth: 2,

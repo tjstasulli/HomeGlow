@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeWidgetSettings, BASE_WIDGET_SETTINGS } from './widgetSettings.js';
+import { normalizeWidgetSettings, BASE_WIDGET_SETTINGS, resolveWidgetOpacity } from './widgetSettings.js';
 
 describe('normalizeWidgetSettings', () => {
   it('returns base defaults for null/undefined/non-object input', () => {
@@ -54,5 +54,27 @@ describe('normalizeWidgetSettings', () => {
     const result = normalizeWidgetSettings({ chores: { enabled: true } }, defaults);
     expect(result.chores).toEqual({ enabled: true, refreshInterval: 0 });
     expect(result.photos).toEqual({ enabled: false, refreshInterval: 0 });
+  });
+});
+
+describe('resolveWidgetOpacity', () => {
+  it('uses opacity when present, ignoring transparent', () => {
+    expect(resolveWidgetOpacity({ opacity: 40, transparent: true })).toBe(40);
+    expect(resolveWidgetOpacity({ opacity: 0 })).toBe(0);
+  });
+
+  it('derives opacity from the legacy transparent flag when opacity is absent', () => {
+    expect(resolveWidgetOpacity({ transparent: true })).toBe(0);
+    expect(resolveWidgetOpacity({ transparent: false })).toBe(100);
+  });
+
+  it('defaults to fully opaque with neither field set', () => {
+    expect(resolveWidgetOpacity({})).toBe(100);
+    expect(resolveWidgetOpacity(undefined)).toBe(100);
+  });
+
+  it('clamps an out-of-range stored value to 0-100', () => {
+    expect(resolveWidgetOpacity({ opacity: 150 })).toBe(100);
+    expect(resolveWidgetOpacity({ opacity: -10 })).toBe(0);
   });
 });

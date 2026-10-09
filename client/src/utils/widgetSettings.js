@@ -13,3 +13,17 @@ export const normalizeWidgetSettings = (raw, defaults = BASE_WIDGET_SETTINGS) =>
   photos: { ...defaults.photos, ...(raw?.photos || {}) },
   weather: { ...defaults.weather, ...(raw?.weather || {}) },
 });
+
+/**
+ * A widget's effective opacity (0-100): its own `opacity` if set, else
+ * derived from the legacy `transparent` boolean (true -> 0, false/absent ->
+ * 100), so settings saved before opacity existed keep rendering exactly as
+ * they did.
+ */
+export function resolveWidgetOpacity(settings) {
+  const opacity = settings?.opacity;
+  if (typeof opacity === 'number' && Number.isFinite(opacity)) {
+    return Math.max(0, Math.min(100, opacity));
+  }
+  return settings?.transparent ? 0 : 100;
+}

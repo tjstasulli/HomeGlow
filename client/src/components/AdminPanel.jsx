@@ -100,7 +100,7 @@ import ControlsOnDisplay from './ControlsOnDisplay';
 import useFetchTabs from '../hooks/useFetchTabs.js';
 import useIsMobile from '../hooks/useIsMobile.js';
 import { syncWidgetAssignments } from '../utils/assignmentSync.js';
-import { normalizeWidgetSettings as normalizeSharedWidgetSettings } from '../utils/widgetSettings.js';
+import { normalizeWidgetSettings as normalizeSharedWidgetSettings, resolveWidgetOpacity } from '../utils/widgetSettings.js';
 import { stackableTableSx } from '../utils/responsiveTable.js';
 import {
   SCREENSAVER_SETTINGS_STORAGE_KEY,
@@ -1459,6 +1459,16 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
     }));
   };
 
+  const handleWidgetOpacityChange = (widget, opacity) => {
+    setLocalWidgetSettings(prev => ({
+      ...prev,
+      [widget]: {
+        ...prev[widget],
+        opacity
+      }
+    }));
+  };
+
   const saveUser = async () => {
     try {
       setIsLoading(true);
@@ -2016,16 +2026,18 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                           }
                           label={t('common:labels.enabled')}
                         />
-                        <FormControlLabel
-                          control={
-                            <Switch
-                              checked={Boolean(config.transparent)}
-                              onChange={() => handleWidgetToggle(widget, 'transparent')}
-                            />
-                          }
-                          label={t('admin:widgets.transparentBackground')}
-                          sx={{ ml: 2 }}
-                        />
+                        <Box sx={{ mt: 2, ml: 2, maxWidth: 240 }}>
+                          <Typography variant="body2" sx={{ mb: 0.5 }}>
+                            {t('admin:widgets.opacity', { value: resolveWidgetOpacity(config) })}
+                          </Typography>
+                          <Slider
+                            value={resolveWidgetOpacity(config)}
+                            onChange={(e, value) => handleWidgetOpacityChange(widget, value)}
+                            min={0}
+                            max={100}
+                            step={5}
+                          />
+                        </Box>
                       </Grid>
 
                       <Grid size={{ xs: 12, sm: 6 }}>
@@ -2089,16 +2101,18 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                         }
                         label={t('common:labels.enabled')}
                       />
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={Boolean(widgetSettings.weather?.transparent)}
-                            onChange={() => handleWidgetToggle('weather', 'transparent')}
-                          />
-                        }
-                        label={t('admin:widgets.transparentBackground')}
-                        sx={{ ml: 2 }}
-                      />
+                      <Box sx={{ mt: 2, ml: 2, maxWidth: 240 }}>
+                        <Typography variant="body2" sx={{ mb: 0.5 }}>
+                          {t('admin:widgets.opacity', { value: resolveWidgetOpacity(widgetSettings.weather) })}
+                        </Typography>
+                        <Slider
+                          value={resolveWidgetOpacity(widgetSettings.weather)}
+                          onChange={(e, value) => handleWidgetOpacityChange('weather', value)}
+                          min={0}
+                          max={100}
+                          step={5}
+                        />
+                      </Box>
                     </Grid>
 
                     <Grid size={{ xs: 12, sm: 6 }}>
@@ -2481,21 +2495,23 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                                 }
                                 label={t('common:labels.enabled')}
                               />
-                              <FormControlLabel
-                                control={
-                                  <Switch
-                                    checked={pSettings.transparent || false}
-                                    onChange={() => {
-                                      setPluginSettings(prev => ({
-                                        ...prev,
-                                        [plugin.filename]: { ...prev[plugin.filename], transparent: !(prev[plugin.filename]?.transparent) }
-                                      }));
-                                    }}
-                                  />
-                                }
-                                label={t('admin:plugins.transparentBackground')}
-                                sx={{ ml: 2 }}
-                              />
+                              <Box sx={{ mt: 2, maxWidth: 240 }}>
+                                <Typography variant="body2" sx={{ mb: 0.5 }}>
+                                  {t('admin:widgets.opacity', { value: resolveWidgetOpacity(pSettings) })}
+                                </Typography>
+                                <Slider
+                                  value={resolveWidgetOpacity(pSettings)}
+                                  onChange={(e, value) => {
+                                    setPluginSettings(prev => ({
+                                      ...prev,
+                                      [plugin.filename]: { ...prev[plugin.filename], opacity: value }
+                                    }));
+                                  }}
+                                  min={0}
+                                  max={100}
+                                  step={5}
+                                />
+                              </Box>
                             </Grid>
 
                             <Grid size={{ xs: 12, sm: 6 }}>
