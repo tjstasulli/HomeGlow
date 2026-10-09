@@ -50,6 +50,12 @@ describe('normalizeDeviceAppearance', () => {
   });
 });
 
+describe('theme field accepts the auto-season sentinel', () => {
+  it('stores auto-season exactly like a real theme id', () => {
+    expect(normalizeDeviceAppearance({ theme: 'auto-season' })).toEqual({ theme: 'auto-season' });
+  });
+});
+
 describe('resolveAppearance', () => {
   it('takes each field from the display when it overrides it, else the household', () => {
     const resolved = resolveAppearance({ mode: 'dark', colors: BERRY }, { mode: 'light' });

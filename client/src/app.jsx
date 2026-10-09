@@ -40,6 +40,7 @@ import {
   applyThemeTokens,
   loadThemeFonts,
   muiThemeOptions,
+  resolveSeasonalThemeId,
   resolveTheme,
   themeDisplayMode,
   themeTokens,
@@ -271,14 +272,23 @@ const App = () => {
   // place of the household's interface colors, including for plugins.
   const themeRegistry = useThemeRegistry();
   useEffect(() => { loadInstalledThemes(); }, []);
+  // 'auto-season' isn't a real theme id in the registry — it's a sentinel
+  // that resolves to whichever of the four seasonal themes matches today's
+  // date (and hemisphere, from the same location already configured for
+  // auto-dark-mode). Computed fresh each render; a season boundary crossed
+  // while the display is idle is picked up at the next scheduled refresh.
+  const effectiveThemeId = appearance.theme === 'auto-season'
+    ? resolveSeasonalThemeId(Date.now(), appearance.autoDark?.lat)
+    : appearance.theme;
   // A theme installed since this display loaded its list: read it again.
-  const themeKnown = themeRegistry.themes.some((entry) => entry.id === appearance.theme);
+  const themeKnown = appearance.theme === 'auto-season'
+    || themeRegistry.themes.some((entry) => entry.id === effectiveThemeId);
   useEffect(() => {
     if (!themeKnown) loadInstalledThemes();
   }, [themeKnown, appearance.theme]);
   const baseTheme = useMemo(
-    () => resolveTheme(appearance.theme, themeRegistry.themes, themeRegistry.assets),
-    [appearance.theme, themeRegistry],
+    () => resolveTheme(effectiveThemeId, themeRegistry.themes, themeRegistry.assets),
+    [effectiveThemeId, themeRegistry],
   );
   // A theme with weather scenes (#247) shows the scene for the weather
   // outside, or one previewed from Admin. Night is the scene's dark look.
@@ -290,8 +300,8 @@ const App = () => {
   const previewScene = useWeatherScenePreview();
   const weatherScene = baseTheme.weather ? (previewScene || pickWeatherScene(baseTheme.weather, weatherCondition)) : null;
   const activeTheme = useMemo(
-    () => (weatherScene ? resolveTheme(appearance.theme, themeRegistry.themes, themeRegistry.assets, { scene: weatherScene }) : baseTheme),
-    [baseTheme, weatherScene, appearance.theme, themeRegistry],
+    () => (weatherScene ? resolveTheme(effectiveThemeId, themeRegistry.themes, themeRegistry.assets, { scene: weatherScene }) : baseTheme),
+    [baseTheme, weatherScene, effectiveThemeId, themeRegistry],
   );
   const displayTheme = themeDisplayMode(activeTheme, theme);
   const themeColors = useMemo(
