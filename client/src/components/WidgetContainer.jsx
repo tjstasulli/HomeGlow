@@ -7,13 +7,13 @@ import axios from 'axios';
 import { API_BASE_URL } from '../utils/apiConfig.js';
 import { getDeviceApiBase } from '../utils/deviceName.js';
 import {
+  applyResizability,
   clampLayoutItem,
   layoutItemFromNormalized,
   layoutToNormalized,
   scaleLayoutItem,
 } from '../utils/gridLayout.js';
 import CountdownCircle from './CountdownCircle';
-import { canCommitResize } from '../utils/resizeGuard';
 import { shouldAcceptLayoutChange } from '../utils/layoutSync';
 import { buildLayout, savedSourcesById } from '../utils/gridPlacement';
 import { readGridMetrics } from '../utils/gridMetrics';
@@ -78,7 +78,6 @@ const WidgetContainer = ({
   // rebuild lands. Guards against saving a layout mid tab change — see
   // shouldAcceptLayoutChange.
   const layoutTabRef = useRef(null);
-  const resizeTapGuardRef = useRef(new Map());
   // The widgets of the latest render, whose savedLayout describes the active
   // tab. Read when a save is requested, not when the debounced save fires.
   const widgetsRef = useRef(widgets);
@@ -274,120 +273,10 @@ const WidgetContainer = ({
     }
   };
 
-  // Handle resize button clicks (both increment and decrement)
-  const handleResize = (widgetId, direction, isDecrement = false, e) => {
-    if (locked) {
-      return;
-    }
-
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-
-    setLayout((currentLayout) => {
-      const newLayout = currentLayout.map((item) => {
-        if (item.i === widgetId) {
-          const updatedItem = { ...item, static: locked };
-          const delta = isDecrement ? -1 : 1;
-
-          switch (direction) {
-            case 'right':
-              if (isDecrement) {
-                if (item.w > item.minW) {
-                  updatedItem.w = item.w - 1;
-                }
-              } else {
-                if (item.x + item.w < gridCols) {
-                  updatedItem.w = item.w + 1;
-                }
-              }
-              break;
-            case 'left':
-              if (isDecrement) {
-                if (item.w > item.minW) {
-                  updatedItem.x = item.x + 1;
-                  updatedItem.w = item.w - 1;
-                }
-              } else {
-                if (item.x > 0) {
-                  updatedItem.x = item.x - 1;
-                  updatedItem.w = item.w + 1;
-                }
-              }
-              break;
-            case 'bottom':
-              if (isDecrement) {
-                if (item.h > item.minH) {
-                  updatedItem.h = item.h - 1;
-                }
-              } else {
-                updatedItem.h = item.h + 1;
-              }
-              break;
-            case 'top':
-              if (isDecrement) {
-                if (item.h > item.minH) {
-                  updatedItem.y = item.y + 1;
-                  updatedItem.h = item.h - 1;
-                }
-              } else {
-                if (item.y > 0) {
-                  updatedItem.y = item.y - 1;
-                  updatedItem.h = item.h + 1;
-                }
-              }
-              break;
-          }
-
-          return updatedItem;
-        }
-        return { ...item, static: locked };
-      });
-
-      const before = currentLayout.find((item) => item.i === widgetId);
-      const after = newLayout.find((item) => item.i === widgetId);
-
-      // The grid refuses a DRAG that would land on another widget
-      // (compactType null + preventCollision). The resize buttons bypass that
-      // path entirely, so a widget could be grown over its neighbour and the
-      // overlap persisted. Apply the same rule here: abandon the resize and
-      // keep the layout untouched, so nothing is saved either.
-      if (!canCommitResize(currentLayout, before, after)) {
-        return currentLayout;
-      }
-
-      if (onLayoutChangeCallback) {
-        onLayoutChangeCallback(newLayout);
-      }
-
-      saveLayoutsToApi(newLayout, activeTab, gridCols);
-      return newLayout;
-    });
-  };
-
-  const handleResizePointerDown = (widgetId, direction, isDecrement = false) => (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // Guard against duplicate touch-generated activation bursts on some Android devices.
-    const pointerType = e.pointerType || 'unknown';
-    const guardKey = `${widgetId}:${direction}:${isDecrement ? 'dec' : 'inc'}:${pointerType}`;
-    const now = Date.now();
-    const lastTap = resizeTapGuardRef.current.get(guardKey) || 0;
-
-    if (now - lastTap < 160) {
-      return;
-    }
-
-    resizeTapGuardRef.current.set(guardKey, now);
-    handleResize(widgetId, direction, isDecrement, e);
-  };
-
   const handleWidgetClick = (widgetId, e) => {
     if (locked) return;
     if (e.target.closest('.drag-handle')) return;
-    if (e.target.closest('.resize-button')) return;
+    if (e.target.closest('.react-resizable-handle')) return;
     e.stopPropagation();
     setSelectedWidget(widgetId);
   };
@@ -395,7 +284,7 @@ const WidgetContainer = ({
   const handleWidgetTouch = (widgetId, e) => {
     if (locked) return;
     if (e.target.closest('.drag-handle')) return;
-    if (e.target.closest('.resize-button')) return;
+    if (e.target.closest('.react-resizable-handle')) return;
     e.stopPropagation();
     setSelectedWidget(widgetId);
   };
@@ -436,7 +325,7 @@ const WidgetContainer = ({
         return;
       }
 
-      const hasResizeControls = selectedElement.querySelector('.resize-button');
+      const hasResizeControls = selectedElement.querySelector('.react-resizable-handle');
       if (!hasResizeControls) {
         setSelectedWidget(null);
       }
@@ -501,21 +390,11 @@ const WidgetContainer = ({
   // tab, live state wins so a drag in progress is not thrown away.
   const gridLayout = useMemo(() => {
     const built = buildLayout(widgets, gridCols, locked);
-    if (layoutTabRef.current !== activeTab) return built;
-    return built.map((item) => layout.find((l) => l.i === item.i) || item);
-  }, [widgets, layout, gridCols, locked, activeTab]);
-
-  const resizeButtonBaseStyle = {
-    fontSize: '1.5rem',
-    userSelect: 'none',
-    touchAction: 'none',
-    WebkitTouchCallout: 'none',
-    filter: 'drop-shadow(0 2px 4px var(--hg-black-30))',
-    transition: 'transform 0.1s ease, filter 0.1s ease',
-    backgroundColor: 'var(--hg-black-50)',
-    padding: '4px 8px',
-    borderRadius: 'var(--hg-radius-sm)',
-  };
+    const reconciled = layoutTabRef.current !== activeTab
+      ? built
+      : built.map((item) => layout.find((l) => l.i === item.i) || item);
+    return applyResizability(reconciled, selectedWidget, locked);
+  }, [widgets, layout, gridCols, locked, activeTab, selectedWidget]);
 
   return (
     <Box
@@ -545,6 +424,9 @@ const WidgetContainer = ({
           zIndex: 2,
           transition: 'all 100ms ease',
         },
+        '& .react-resizable-handle': {
+          zIndex: 1004,
+        },
       }}
     >
       <ThemeAmbience />
@@ -564,7 +446,7 @@ const WidgetContainer = ({
             handle: '.drag-handle',
             cancel: '.widget-content',
           }}
-          resizeConfig={{ enabled: false }}
+          resizeConfig={{ enabled: true, handles: ['n', 's', 'e', 'w'] }}
           compactor={GRID_COMPACTOR}
           onLayoutChange={handleLayoutChange}
         >
@@ -591,44 +473,12 @@ const WidgetContainer = ({
               static: locked,
             };
             const effectiveLayout = currentLayout || fallbackLayout;
-            const canDecreaseWidth = currentLayout && currentLayout.w > currentLayout.minW;
-            const canDecreaseHeight = currentLayout && currentLayout.h > currentLayout.minH;
-            const canIncreaseWidth = currentLayout && (currentLayout.x + currentLayout.w < gridCols);
-            const canIncreaseLeft = currentLayout && currentLayout.x > 0;
-            const canIncreaseTop = currentLayout && currentLayout.y > 0;
-
-            // One resize handle: a ➖/➕ box that dispatches a resize on pointer-down.
-            // `enabled` gates the affordance — grayed out and not-allowed when the
-            // widget can't resize further in that direction.
-            const renderResizeButton = ({ direction, decrement, enabled, symbol }) => (
-              <Box
-                className="resize-button"
-                onPointerDown={handleResizePointerDown(widget.id, direction, decrement)}
-                sx={{
-                  ...resizeButtonBaseStyle,
-                  cursor: enabled ? 'pointer' : 'not-allowed',
-                  opacity: enabled ? 1 : 0.3,
-                  '&:hover': {
-                    transform: enabled ? 'scale(1.2)' : 'none',
-                    filter: enabled
-                      ? 'drop-shadow(0 4px 8px var(--hg-black-50))'
-                      : 'drop-shadow(0 2px 4px var(--hg-black-30))',
-                  },
-                  '&:active': {
-                    transform: enabled ? 'scale(1.1)' : 'none',
-                  },
-                }}
-              >
-                {symbol}
-              </Box>
-            );
-
             return (
               <Box
                 key={widget.id}
                 className={`widget-wrapper ${isSelected ? 'selected' : ''}`}
                 onPointerDownCapture={(e) => {
-                  if (!locked && !isSelected && !e.target.closest('.drag-handle') && !e.target.closest('.resize-button')) {
+                  if (!locked && !isSelected && !e.target.closest('.drag-handle') && !e.target.closest('.react-resizable-handle')) {
                     if (isInteractiveTarget(e.target)) {
                       // Select on interactive taps too so edit affordances (drag/resize) remain reachable.
                       setSelectedWidget(widget.id);
@@ -697,79 +547,8 @@ const WidgetContainer = ({
                   />
                 )}
 
-                {/* Resize Buttons - Only visible when selected and unlocked */}
                 {isSelected && !locked && (
                   <>
-                    {/* Top Resize Buttons */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 8,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        display: 'flex',
-                        gap: 1,
-                        zIndex: 1003,
-                        pointerEvents: 'auto',
-                      }}
-                    >
-                      {renderResizeButton({ direction: 'top', decrement: true, enabled: canDecreaseHeight, symbol: '➖' })}
-                      {renderResizeButton({ direction: 'top', decrement: false, enabled: canIncreaseTop, symbol: '➕' })}
-                    </Box>
-
-                    {/* Right Resize Buttons */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        right: 8,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 1,
-                        zIndex: 1003,
-                        pointerEvents: 'auto',
-                      }}
-                    >
-                      {renderResizeButton({ direction: 'right', decrement: true, enabled: canDecreaseWidth, symbol: '➖' })}
-                      {renderResizeButton({ direction: 'right', decrement: false, enabled: canIncreaseWidth, symbol: '➕' })}
-                    </Box>
-
-                    {/* Bottom Resize Buttons */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        bottom: 8,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        display: 'flex',
-                        gap: 1,
-                        zIndex: 1003,
-                        pointerEvents: 'auto',
-                      }}
-                    >
-                      {renderResizeButton({ direction: 'bottom', decrement: true, enabled: canDecreaseHeight, symbol: '➖' })}
-                      {renderResizeButton({ direction: 'bottom', decrement: false, enabled: true, symbol: '➕' })}
-                    </Box>
-
-                    {/* Left Resize Buttons */}
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        left: 8,
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 1,
-                        zIndex: 1003,
-                        pointerEvents: 'auto',
-                      }}
-                    >
-                      {renderResizeButton({ direction: 'left', decrement: true, enabled: canDecreaseWidth, symbol: '➖' })}
-                      {renderResizeButton({ direction: 'left', decrement: false, enabled: canIncreaseLeft, symbol: '➕' })}
-                    </Box>
-
                     {/* Invisible Drag Handle - Covers entire widget when selected and unlocked */}
                     <Box
                       className="drag-handle"

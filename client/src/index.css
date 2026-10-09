@@ -129,30 +129,11 @@ body {
   display: none;
 }
 
-.react-grid-item:has(.selected) > .react-resizable-handle-s {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 48px;
-  cursor: ns-resize;
-  background-color: var(--accent);
-  color: white;
-  border-radius: 0 0 var(--hg-radius-md) var(--hg-radius-md);
-  box-shadow: 0 -2px 8px var(--hg-black-20);
-  z-index: 1002;
-  user-select: none;
-  font-size: 0.75rem;
+.react-grid-item.selected > .react-resizable-handle {
+  display: block;
 }
 
-.react-grid-item:has(.selected) > .react-resizable-handle-s::after {
-  content: "⇕ Drag to Resize Height • Click outside to deselect";
-}
-
-.react-grid-item:has(.selected) > .react-resizable-handle-s:hover {
+.react-grid-item.selected > .react-resizable-handle:hover {
   filter: brightness(1.1);
 }
 
