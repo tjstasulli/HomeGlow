@@ -1,0 +1,78 @@
+{
+  "manifestVersion": 4,
+  "id": "harvest",
+  "name": "Harvest",
+  "version": "1.0.0",
+  "author": "HomeGlow",
+  "description": "Warm and cozy, with leaves always gently falling — and blowing hard when the wind picks up.",
+  "extends": "classic",
+  "modes": ["light", "dark"],
+  "colors": { "primary": "#FBF1E6", "secondary": "#D9772E", "accent": "#D9772E" },
+  "fonts": [
+    { "family": "Inter", "weight": 400, "src": "fonts/Inter-Regular.woff2" },
+    { "family": "Inter", "weight": 600, "src": "fonts/Inter-SemiBold.woff2" },
+    { "family": "Inter", "weight": 700, "src": "fonts/Inter-Bold.woff2" }
+  ],
+  "tokens": {
+    "all": {
+      "--hg-font-body": "'Inter', sans-serif",
+      "--hg-font-heading": "'Inter', sans-serif",
+      "--hg-grid-gap": "24px",
+      "--hg-button-radius": "999px",
+      "--hg-button-weight": "600"
+    },
+    "light": {
+      "--background": "#FBF1E6",
+      "--surface": "#FFF8EF",
+      "--text": "#3B2A20",
+      "--text-secondary": "#8A7259",
+      "--border": "#EFE1CC",
+      "--accent": "#D9772E",
+      "--accent-rgb": "217, 119, 46",
+      "--hg-frame-bg": "#FFF8EF",
+      "--hg-frame-radius": "20px",
+      "--hg-frame-shadow": "0 10px 28px rgba(217, 119, 46, 0.16)",
+      "--hg-button-bg": "#D9772E",
+      "--hg-button-text": "#FFFFFF"
+    },
+    "dark": {
+      "--background": "#1A100C",
+      "--surface": "#2A1A13",
+      "--text": "#F5E8DC",
+      "--text-secondary": "#B89A82",
+      "--border": "#3A251A",
+      "--accent": "#E08A3C",
+      "--accent-rgb": "224, 138, 60",
+      "--hg-frame-bg": "#2A1A13",
+      "--hg-frame-radius": "18px",
+      "--hg-frame-shadow": "none",
+      "--hg-button-bg": "#E08A3C",
+      "--hg-button-text": "#1A100C"
+    }
+  },
+  "ambience": [
+    { "layer": "particles", "src": "assets/leaf.svg", "motion": "fall", "count": 6, "size": [10, 18], "seconds": [12, 20], "drift": 60, "opacity": 0.85 }
+  ],
+  "weather": {
+    "scenes": {
+      "windy": {
+        "ambience": [
+          { "layer": "particles", "src": "assets/leaf.svg", "motion": "fall", "count": 15, "size": [10, 18], "seconds": [5, 9], "drift": 180, "opacity": 0.9 }
+        ]
+      },
+      "rainy": {
+        "ambience": [
+          { "layer": "particles", "src": "assets/leaf.svg", "motion": "fall", "count": 3, "size": [10, 18], "seconds": [12, 20], "drift": 60, "opacity": 0.85 },
+          { "layer": "particles", "motion": "fall", "colors": ["#8FA08A"], "count": 24, "size": [2, 4], "seconds": [3, 5], "opacity": 0.5 }
+        ]
+      },
+      "lightning": {
+        "ambience": [
+          { "layer": "particles", "src": "assets/leaf.svg", "motion": "fall", "count": 3, "size": [10, 18], "seconds": [12, 20], "drift": 60, "opacity": 0.85 },
+          { "layer": "particles", "motion": "fall", "colors": ["#8FA08A"], "count": 24, "size": [2, 4], "seconds": [3, 5], "opacity": 0.5 },
+          { "layer": "flash", "color": "#F5E8DC", "every": [25, 90], "strength": 0.3, "double": false }
+        ]
+      }
+    }
+  }
+}
