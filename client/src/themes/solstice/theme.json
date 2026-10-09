@@ -1,0 +1,74 @@
+{
+  "manifestVersion": 4,
+  "id": "solstice",
+  "name": "Solstice",
+  "version": "1.0.0",
+  "author": "HomeGlow",
+  "description": "Bright, clean and still by day; the odd shooting star on a clear summer night.",
+  "extends": "classic",
+  "modes": ["light", "dark"],
+  "colors": { "primary": "#FFFCF2", "secondary": "#00BFA6", "accent": "#00BFA6" },
+  "fonts": [
+    { "family": "Inter", "weight": 400, "src": "fonts/Inter-Regular.woff2" },
+    { "family": "Inter", "weight": 600, "src": "fonts/Inter-SemiBold.woff2" },
+    { "family": "Inter", "weight": 700, "src": "fonts/Inter-Bold.woff2" }
+  ],
+  "tokens": {
+    "all": {
+      "--hg-font-body": "'Inter', sans-serif",
+      "--hg-font-heading": "'Inter', sans-serif",
+      "--hg-grid-gap": "24px",
+      "--hg-button-radius": "999px",
+      "--hg-button-weight": "600"
+    },
+    "light": {
+      "--background": "#FFFCF2",
+      "--surface": "#FFFFFF",
+      "--text": "#2B2A28",
+      "--text-secondary": "#6B6A62",
+      "--border": "#F0ECDD",
+      "--accent": "#00BFA6",
+      "--accent-rgb": "0, 191, 166",
+      "--hg-frame-bg": "#FFFFFF",
+      "--hg-frame-radius": "16px",
+      "--hg-frame-shadow": "0 8px 24px rgba(0, 191, 166, 0.14)",
+      "--hg-button-bg": "#00BFA6",
+      "--hg-button-text": "#FFFFFF"
+    },
+    "dark": {
+      "--background": "#071A1C",
+      "--surface": "#0E2B2E",
+      "--text": "#F0FFFC",
+      "--text-secondary": "#8FC4BE",
+      "--border": "#133538",
+      "--accent": "#00E6C9",
+      "--accent-rgb": "0, 230, 201",
+      "--hg-frame-bg": "#0E2B2E",
+      "--hg-frame-radius": "16px",
+      "--hg-frame-shadow": "none",
+      "--hg-button-bg": "#00E6C9",
+      "--hg-button-text": "#071A1C"
+    }
+  },
+  "weather": {
+    "default": { "ambience": [] },
+    "scenes": {
+      "sunny": {
+        "ambience": [
+          { "layer": "streaks", "modes": ["dark"], "color": "#CFF5EE", "length": 120, "every": [300, 900], "seconds": [1.5, 3], "burst": 1 }
+        ]
+      },
+      "rainy": {
+        "ambience": [
+          { "layer": "particles", "motion": "fall", "colors": ["#7FB8B0"], "count": 24, "size": [2, 4], "seconds": [3, 5], "opacity": 0.5 }
+        ]
+      },
+      "lightning": {
+        "ambience": [
+          { "layer": "particles", "motion": "fall", "colors": ["#7FB8B0"], "count": 24, "size": [2, 4], "seconds": [3, 5], "opacity": 0.5 },
+          { "layer": "flash", "color": "#F0FFFC", "every": [25, 90], "strength": 0.3, "double": false }
+        ]
+      }
+    }
+  }
+}
