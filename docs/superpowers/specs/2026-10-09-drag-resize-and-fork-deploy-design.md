@@ -36,9 +36,11 @@ images from that fork's own build instead of `ghcr.io/jherforth/*`.
 - Not adopting `react-rnd` / abandoning the grid-snapping model.
 - Not changing the backend, the grid's column/breakpoint math
   (`gridLayout.js`, `gridPlacement.js`), or the normalized-storage format.
-- Not setting up automatic/unattended image updates on the Pi — updates still
-  require an explicit `docker compose pull && up -d` after a new tag is
-  published (consistent with how BlackHole's containers are managed today).
+- Not setting up automatic/unattended image updates on the Pi in this
+  (Phase 1) rollout — updates require an explicit `docker compose pull
+  && up -d` after a new tag is published (consistent with how BlackHole's
+  containers are managed today). Phase 2 below revisits this once the repo
+  goes private.
 
 ## Design
 
@@ -129,3 +131,104 @@ change doesn't touch any of them, it only changes what triggers a resize.
 3. Update `/opt/homeglow/compose.yaml` on `WindowToTheStars` to the new
    image references, `docker compose pull && docker compose up -d`.
 4. Manually verify drag-resize on the live dashboard.
+
+## Phase 2 (later): private repo, private images, Watchtower auto-update
+
+Not part of the initial rollout — done only after Phase 1 (resize feature +
+public-image deploy) is live and verified stable on `WindowToTheStars`.
+
+### Goal
+
+Flip `tjstasulli/HomeGlow` to a private repository, to guard against any
+secret or proprietary-code exposure from an accidental commit, while keeping
+the Pi's deployment working with no manual pull step required going forward.
+
+### Decisions
+
+- Both GHCR packages (`homeglow-frontend`, `homeglow-backend`) go private
+  along with the repo — full lockdown, not just the source.
+- Updates are delivered via **Watchtower**, not a cron job or manual pulls.
+
+### Design
+
+**1. Registry authentication (prerequisite, done before flipping anything private)**
+
+- Generate a GitHub **fine-grained PAT**, scoped to only the
+  `tjstasulli/HomeGlow` repository, with **Packages: read-only** permission
+  and a 1-year expiration (fine-grained tokens cannot be set to "no
+  expiration"). Scoping to one repo and one permission limits the blast
+  radius if the token ever leaks, versus a classic PAT's broader reach.
+- One-time on `WindowToTheStars`: `docker login ghcr.io -u tjstasulli
+  --password-stdin` using that PAT. This writes credentials to
+  `~/.docker/config.json` (Docker's default credential store; the file is
+  owner-only by default). No token is stored in any compose file.
+- **Rotation**: the PAT expires in ~1 year. Set a reminder to generate a new
+  one and re-run `docker login` before then — an expired token makes both
+  manual pulls and Watchtower's checks start failing (Watchtower logs this;
+  it does not fail silently, but nothing currently surfaces that log to the
+  user — see optional notification note below).
+
+**2. Flip repo and packages to private**
+
+- GitHub repo settings → Danger Zone → change visibility to private.
+- Each GHCR package's own settings → change visibility to private (package
+  visibility is independent of repo visibility and must be set explicitly).
+- Verify: `docker compose pull` on the Pi still succeeds using the
+  credentials from step 1 before relying on Watchtower.
+
+**3. Watchtower deployment**
+
+Own directory, following the established `/opt/<app>/compose.yaml`
+convention (Watchtower is cross-cutting infra, not a HomeGlow component, so
+it gets its own folder rather than living inside `/opt/homeglow/`):
+
+```yaml
+# /opt/watchtower/compose.yaml
+services:
+  watchtower:
+    container_name: watchtower
+    image: containrrr/watchtower:latest
+    restart: unless-stopped
+    environment:
+      TZ: America/New_York
+      WATCHTOWER_LABEL_ENABLE: "true"
+      WATCHTOWER_CLEANUP: "true"
+      WATCHTOWER_SCHEDULE: "0 0 4 * * *"   # 4am daily
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/spaceman/.docker/config.json:/config.json:ro
+```
+
+- `WATCHTOWER_LABEL_ENABLE` scopes Watchtower to only containers explicitly
+  opted in via label — it will not touch any other container that might run
+  on this Pi later unless that container is labeled too. Add to both
+  HomeGlow services in `/opt/homeglow/compose.yaml`:
+
+  ```yaml
+      labels:
+        - "com.centurylinklabs.watchtower.enable=true"
+  ```
+
+- `WATCHTOWER_CLEANUP` removes the superseded image after a successful
+  update, keeping disk usage from growing with every release (same "keep it
+  sleek" goal as everything else on these Pis).
+- Mounting the host's `config.json` read-only gives Watchtower the same
+  registry credentials `docker login` already set up — no second copy of
+  the token anywhere.
+
+**Optional, not included by default (YAGNI):** Watchtower supports
+Shoutrrr-based notifications (Slack, email, etc.) on update success/failure.
+Given the PAT-expiry failure mode above, a Slack notification on *failure*
+would surface that quickly — worth adding later if silent update failures
+become an actual problem, not up front.
+
+### Rollout (Phase 2)
+
+1. Generate the fine-grained PAT; `docker login` on `WindowToTheStars`.
+2. Flip the repo private, then both packages private.
+3. Confirm `docker compose pull` still works against `/opt/homeglow`.
+4. Add the Watchtower label to both HomeGlow services; deploy
+   `/opt/watchtower/compose.yaml`.
+5. Tag a test release on the fork; confirm Watchtower picks it up on its
+   next scheduled run (or trigger one manually to verify sooner) and that
+   the HomeGlow containers restart on the new image.
