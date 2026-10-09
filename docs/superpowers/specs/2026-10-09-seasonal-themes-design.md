@@ -18,9 +18,13 @@ year with no manual action required.
 - A new **"Automatic (by season)"** theme option that resolves to the
   correct one of the four based on the current date (and, where available,
   hemisphere), with no widget and no server changes.
-- Ship entirely as **theme data** (manifests, fonts, optional assets) plus
-  one small new pure function and a small amount of wiring — never new
-  theme *code*, matching every existing theme in this app.
+- Each theme reacts to real weather (rain, snow, wind, lightning), using
+  the engine's existing weather-scenes feature and the household's already-
+  configured OpenWeatherMap key, with its own matching treatment for both
+  light and dark mode rather than one borrowed for both.
+- Ship entirely as **theme data** (manifests, fonts, four small SVG
+  assets) plus one small new pure function and a small amount of wiring —
+  never new theme *code*, matching every existing theme in this app.
 
 ## Non-goals
 
@@ -83,28 +87,127 @@ Each theme's manifest sets `extends: "classic"` (tokens/colors/MUI options
 apply on top of Classic's base, same as Reef/Starship today) and
 `modes: ["light", "dark"]`.
 
-### 3. Seasonal ambience
+### 3. Ambience: base look, weather-reactive scenes, and a night touch
 
-Each theme's `ambience` list stays short (well under the engine's 12-layer
-limit) and restrained:
+Each theme's base `ambience` stays short (well under the engine's 12-layer
+limit) and restrained. On top of that, this uses the engine's existing
+**weather scenes** feature (`manifestVersion` 4, already implemented in
+`client/src/utils/weatherScenes.js` / `useWeatherCondition.js` /
+`app.jsx`): a theme's manifest can list a different scene per weather
+condition, and the app already polls the configured OpenWeatherMap-backed
+`/api/weather/condition` endpoint and picks the right scene automatically.
+This needs **no new engine code** — only manifest data — and the
+auto-season substitution in §5 feeds it for free, since `app.jsx` already
+re-derives the weather scene from whichever theme `resolveTheme` currently
+returns.
 
-- **Frost**: a `particles` layer, snow — low count (10–15), small size,
-  slow fall, low opacity.
-- **Harvest**: a `particles` layer, falling leaves — similarly sparse
-  (5–8), slow, using the existing `particles` building block's `motion:
-  "fall"` the same way Frost's snow does, with a warm-toned leaf asset.
-- **Bloom**: a `particles` layer, soft falling petals — sparse (6-10), slow,
-  low opacity, plus the same very faint `field` layer (two soft pastel
-  glows drifting slowly) underneath for depth.
-- **Solstice**: no ambience layer at all — bright and clean, consistent
-  with the "sunny day, mostly still" principle from the original Horizon
-  concept. Summer's energy comes from its saturated accent color, not
-  motion.
+**How a scene's ambience actually renders**, since this governs how every
+list below is written: `withWeatherScene` (`utils/themes.js`) merges a
+scene's `colors`/`tokens` over the theme's base, but a scene's `ambience`
+*replaces* the theme's base ambience outright when the scene defines one —
+it does not merge. So every scene below that should keep the theme's
+baseline look (e.g. Harvest's leaves still falling during a `rainy` scene,
+just fewer of them) repeats that baseline layer explicitly in its own
+`ambience` list, alongside whatever the scene adds. A scene that defines no
+`ambience` falls back to the theme's base ambience — that's what
+`weather.default` covers.
 
-All particle/field layers respect the engine's existing universal rules
-unchanged: only `transform`/`opacity` animate, nothing renders under
-`prefers-reduced-motion`, nothing renders while the dashboard is inactive.
+**Per-layer `modes` scoping is how day and night each get their own
+treatment within one scene**, exactly as Reef already does for its
+day/night coral art. A single scene (e.g. `sunny`, which is also what
+shows on a clear night — `weatherScenes.js` aliases `clear-night` to
+`sunny`) lists one layer with `modes: ["light"]` and another with
+`modes: ["dark"]`; the engine renders only the one matching the current
+display mode. No separate "night scenes" exist or are needed.
 
+**New art needed vs. procedural (asset-free):** `particles` and `sprites`
+can draw either a real asset image or a plain colored `dot` — a dot is
+enough for anything round and small (rain, snow, fireflies), so only the
+shapes that actually need to look like something specific (petals, leaves,
+a bird, a bee) need a new small SVG. `dots`, `field`, `blobs`, and
+`streaks` are fully procedural and need no asset at all. This keeps new
+asset sourcing to four small shapes total: petal, leaf, bird, bee.
+
+**Bloom (spring)**
+
+- Base (`weather.default` — also covers cloudy/partlycloudy/fog/anything
+  without its own scene): a very faint `field` layer (two soft pastel
+  glows drifting slowly) plus a `particles` layer, soft falling petals
+  (the one petal-shaped asset) — sparse (6–10), slow, low opacity. No
+  `modes` restriction, so both layers show in light and dark alike.
+- `sunny` (and so also clear nights): the base field + petals, plus —
+  light mode — a `flyby` layer for birds (an occasional silhouette
+  crossing high and slow) and a second `flyby` for bees (quicker, lower,
+  shorter path); dark mode — a `particles` layer of fireflies instead,
+  plain glowing `dot` particles (no asset), warm-colored, slow
+  drifting/hovering, in place of the birds/bees.
+- `rainy` / `pouring`: the field layer, without petals (rain reads oddly
+  falling through drifting petals), plus a `particles` rain layer — plain
+  `dot` particles, small, fast, falling, dense enough to read as rain at
+  that speed. Same treatment in both modes; rain doesn't need a light/dark
+  variant.
+- `lightning` / `lightning-rainy`: rain as above, plus the engine's
+  existing `flash` layer for the lightning itself.
+
+**Harvest (fall)**
+
+- Base: a `particles` layer, falling leaves (the one leaf-shaped asset) —
+  sparse (5–8), slow, `motion: "fall"`. No `modes` restriction — leaves
+  falling at night suit the scene exactly as well as by day, so this needs
+  no dark variant.
+- `windy` / `windy-variant`: leaves intensify — more of them (12–18),
+  faster, blown laterally rather than drifting straight down. Same in both
+  modes.
+- `rainy` / `pouring`: a rain layer (plain `dot` particles, as Bloom's)
+  added, leaf count reduced to 3–4 so the scene doesn't get busy with two
+  particle layers competing.
+- `lightning` / `lightning-rainy`: rain (reduced leaves) plus the `flash`
+  layer.
+
+**Frost (winter)**
+
+- Base: no ambience at all — clean and minimal, matching the icy,
+  restrained mood even more than first planned. Winter only *looks*
+  wintry when it's actually snowing, matching the original ask.
+- `snowy` / `snowy-rainy` / `hail`: a `particles` layer, snow — plain
+  `dot` particles (no asset), sparse (10–15), small, slow fall, low
+  opacity. No `modes` restriction; snow against the near-black dark
+  background is, if anything, the nicer of the two.
+- `rainy` / `pouring`: rain instead of snow — the same plain-`dot`
+  treatment as the other themes.
+- Clear weather, dark mode only: a `dots` layer, a handful of slow, very
+  faintly twinkling stars (low count, `twinkle` motion, long seconds,
+  fully procedural) — Frost's one night touch, since its daytime default
+  is deliberately bare.
+- `lightning` / `lightning-rainy`: the `flash` layer, for completeness —
+  rare in winter, but the fallback chain means it costs nothing extra to
+  define.
+
+**Solstice (summer)**
+
+- Base: no ambience — bright, clean, still, exactly as already designed.
+- Clear weather, dark mode only: a `streaks` layer, occasional shooting
+  stars (the engine's existing building block, built for exactly this) —
+  sparse, long pauses between streaks, fully procedural. Light mode stays
+  bare.
+- `rainy` / `pouring`: rain particles (plain `dot`) — a deliberate contrast
+  against the otherwise unornamented theme.
+- `lightning` / `lightning-rainy`: rain plus the `flash` layer — summer
+  thunderstorms are common enough to be worth the one extra scene.
+
+**Not covered, deliberately:** plain `cloudy`/`partlycloudy`/`fog`/`windy`
+(outside Harvest) fall back to each theme's `weather.default` with no
+special treatment — the season's base look already reads fine under an
+overcast sky, and not every condition needs its own scene. A dedicated
+`fog` treatment was considered and dropped: every theme here either has no
+base ambience to haze over (Solstice, Frost) or already reads softly
+(Bloom, Harvest), so a fog scene would add manifest content without adding
+anything visible.
+
+All particle/field/flash/streaks/dots layers respect the engine's existing
+universal rules unchanged: only `transform`/`opacity` animate, nothing
+renders under `prefers-reduced-motion`, nothing renders while the
+dashboard is inactive.
 ### 4. Font sourcing
 
 Inter's `.woff2` files (Regular 400, SemiBold 600, Bold 700 — matching what
@@ -181,15 +284,23 @@ theme immediately on deploy — not left as an unselected option.
 - `appearance.js`'s existing validator tests confirm `'auto-season'` is
   accepted as a stored `theme` value (it already matches `THEME_ID`'s
   pattern — a regression test pins this rather than assumes it).
+- `pickWeatherScene` (already tested for its fallback-chain logic)
+  resolves each theme's `weather.scenes` correctly for every condition in
+  `WEATHER_SCENE_KEYS`, including the conditions a theme deliberately
+  leaves undefined (e.g. Frost's `cloudy`) falling back to `default`.
 - Manual verification (this app has no component-rendering test framework,
   consistent with the constraint carried over from the drag-resize plan):
   load the dashboard with each of the four themes selected directly, in
   both light and dark mode, confirm cards/text/accent read correctly and
   nothing clips (card content was never touched, but a visual pass catches
-  anything a token typo would break); then set `'auto-season'` and confirm
-  it resolves to the correct season for the current date; then verify on
-  the real WindowToTheStars Pi deployment, the same way the drag-resize
-  work was verified there.
+  anything a token typo would break); use Admin → Look → Appearance's
+  scene preview (`setWeatherScenePreview`, already built for this) to
+  check every weather scene in both light and dark mode, confirming the
+  right mode-scoped layer shows (birds/bees vs fireflies, stars vs no
+  stars, etc.); then set `'auto-season'` and confirm it resolves to the
+  correct season for the current date; then verify on the real
+  WindowToTheStars Pi deployment, the same way the drag-resize work was
+  verified there.
 
 ## Error handling
 
@@ -202,16 +313,21 @@ degrades to the Northern-hemisphere default rather than erroring, matching
 
 ## Rollout
 
-1. Source Inter's three `.woff2` weights + `OFL.txt` into each of the four
-   theme folders.
-2. Build each theme folder (`theme.json` + fonts + any ambience assets),
-   starting with Frost (simplest ambience) through to Bloom/Harvest
-   (particle assets needed).
-3. Add `resolveSeasonalThemeId` + tests.
-4. Wire the `'auto-season'` substitution into `app.jsx`'s two
+1. Source Inter's three `.woff2` weights + `OFL.txt` into each of the
+   four theme folders.
+2. Source/draw the four small SVG assets needed (petal, leaf, bird, bee)
+   — everything else (rain, snow, fireflies, stars, shooting stars) is
+   procedural and needs no asset.
+3. Build each theme folder (`theme.json` + fonts + its base ambience),
+   starting with Frost and Solstice (no base ambience at all) through to
+   Bloom/Harvest (the petal/leaf assets).
+4. Add each theme's `weather.scenes` entries per §3's table.
+5. Add `resolveSeasonalThemeId` + tests.
+6. Wire the `'auto-season'` substitution into `app.jsx`'s two
    `resolveTheme` call sites and the `themeKnown` check.
-5. Add the "Automatic (by season)" option to `AppearanceSettings.jsx`'s
+7. Add the "Automatic (by season)" option to `AppearanceSettings.jsx`'s
    theme picker.
-6. Set the household/device appearance to `'auto-season'`.
-7. Manual verification pass (all four themes × both modes, then auto mode,
-   then the real Pi deployment).
+8. Set the household/device appearance to `'auto-season'`.
+9. Manual verification pass (all four themes × both modes × their weather
+   scenes via the admin preview, then auto mode, then the real Pi
+   deployment).
