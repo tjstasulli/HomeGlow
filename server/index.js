@@ -250,6 +250,7 @@ const schemaMigrations = [
   { schemaId: 26, migrationPath: './migrations/schema26-keepLegacyTimezone', },
   { schemaId: 27, migrationPath: './migrations/schema27-choreFollowups', },
   { schemaId: 28, migrationPath: './migrations/schema28-haPanels', },
+  { schemaId: 29, migrationPath: './migrations/schema29-rowPitchScale', },
 ];
 
 const ALLOWED_SCHEDULE_DURATIONS = new Set(['day-of', 'until-completed', 'once-completed']);

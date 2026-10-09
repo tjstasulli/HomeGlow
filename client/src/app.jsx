@@ -1180,9 +1180,9 @@ const App = () => {
         id: 'calendar-widget',
         transparent: Boolean(widgetSettings.calendar.transparent),
         defaultPosition: { x: 0, y: 0 },
-        defaultSize: { width: 8, height: 5 },
+        defaultSize: { width: 8, height: 10 },
         minWidth: 2,
-        minHeight: 2,
+        minHeight: 4,
         savedLayout: dbLayout,
         content: (
           <Suspense fallback={<WidgetLoadingFallback label="calendar" />}>
@@ -1202,9 +1202,9 @@ const App = () => {
         id: 'weather-widget',
         transparent: Boolean(widgetSettings.weather.transparent),
         defaultPosition: { x: 8, y: 0 },
-        defaultSize: { width: 4, height: 3 },
+        defaultSize: { width: 4, height: 6 },
         minWidth: 2,
-        minHeight: 2,
+        minHeight: 4,
         savedLayout: dbLayout,
         content: (
           <Suspense fallback={<WidgetLoadingFallback label="weather" />}>
@@ -1225,10 +1225,10 @@ const App = () => {
       result.push({
         id: 'chores-widget',
         transparent: Boolean(widgetSettings.chores.transparent),
-        defaultPosition: { x: 0, y: 5 },
-        defaultSize: { width: 6, height: 4 },
+        defaultPosition: { x: 0, y: 10 },
+        defaultSize: { width: 6, height: 8 },
         minWidth: 2,
-        minHeight: 2,
+        minHeight: 4,
         savedLayout: dbLayout,
         content: (
           <Suspense fallback={<WidgetLoadingFallback label="chores" />}>
@@ -1243,10 +1243,10 @@ const App = () => {
       result.push({
         id: 'photos-widget',
         transparent: Boolean(widgetSettings.photos.transparent),
-        defaultPosition: { x: 6, y: 5 },
-        defaultSize: { width: 6, height: 4 },
+        defaultPosition: { x: 6, y: 10 },
+        defaultSize: { width: 6, height: 8 },
         minWidth: 2,
-        minHeight: 2,
+        minHeight: 4,
         savedLayout: dbLayout,
         content: (
           <Suspense fallback={<WidgetLoadingFallback label="photos" />}>
@@ -1268,9 +1268,9 @@ const App = () => {
         id: `plugin-${plugin.filename}`,
         transparent: Boolean(pSettings.transparent),
         defaultPosition: { x: 0, y: 0 },
-        defaultSize: { width: 6, height: 4 },
+        defaultSize: { width: 6, height: 8 },
         minWidth: 2,
-        minHeight: 2,
+        minHeight: 4,
         savedLayout: dbLayout,
         content: <PluginWidgetWrapper
           filename={plugin.filename}

@@ -3,7 +3,7 @@
  * gap never moves a widget off its grid lines; a widget spanning h rows is
  * h * GRID_PITCH - gap tall, whatever the gap.
  */
-export const GRID_PITCH = 116;
+export const GRID_PITCH = 58;
 
 /** The gaps a theme may choose (--hg-grid-gap). Anything else falls back. */
 export const GRID_GAPS = [0, 8, 16, 24];
