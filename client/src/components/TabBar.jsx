@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Box, IconButton, Tooltip, Typography, ClickAwayListener } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, IconButton, Tooltip, Typography } from '@mui/material';
 import { Close, Add } from '@mui/icons-material';
 import useIsMobile from '../hooks/useIsMobile.js';
 
@@ -220,6 +220,9 @@ const MenuIcon = ({ name, size = 20, color = 'currentColor' }) => {
   return icons[name] || null;
 };
 
+export const SIDEBAR_COLLAPSED_WIDTH = 64;
+export const SIDEBAR_EXPANDED_WIDTH = 240;
+
 const TabBar = ({
   tabs,
   activeTab,
@@ -235,8 +238,7 @@ const TabBar = ({
   themeMode,
   screensaverCountdown,
 }) => {
-  const [menuOpen, setMenuOpen] = useState(false);
-  const menuAnchorRef = useRef(null);
+  const [expanded, setExpanded] = useState(false);
   const isMobile = useIsMobile();
 
   const defaultHomeTab = {
@@ -249,6 +251,7 @@ const TabBar = ({
   };
 
   const displayTabs = tabs && tabs.length > 0 ? tabs : [defaultHomeTab];
+  const canDeleteTabs = !widgetsLocked && displayTabs.length > 1;
 
   const getThemeIconName = () => {
     if (themeMode === 'auto') return 'automode';
@@ -260,169 +263,68 @@ const TabBar = ({
     return theme === 'dark' ? 'Dark Mode' : 'Light Mode';
   };
 
-  const menuItems = [
-    { id: 'refresh', icon: 'refresh', label: 'Refresh', action: onRefresh },
-    { id: 'settings', icon: 'settings', label: 'Settings', action: onOpenSettings },
-    // On mobile there is no grid to rearrange (issue #118), so no lock toggle.
-    ...(isMobile
-      ? []
-      : [{ id: 'lock', icon: 'move', label: widgetsLocked ? 'Move/Resize' : 'Lock Layout', action: onToggleLock }]),
-    { id: 'theme', icon: getThemeIconName(), label: getThemeLabel(), action: onToggleTheme },
-  ];
+  const selectTab = (tabNumber) => {
+    onTabChange(tabNumber);
+    setExpanded(false);
+  };
+
+  const railWidth = isMobile && expanded ? '100%' : (expanded ? SIDEBAR_EXPANDED_WIDTH : SIDEBAR_COLLAPSED_WIDTH);
 
   return (
     <Box
       sx={{
         position: 'fixed',
-        bottom: 16,
-        left: '50%',
-        transform: 'translateX(-50%)',
-        zIndex: 9999,
+        top: 0,
+        left: 0,
+        bottom: 0,
+        width: railWidth,
+        zIndex: 1200,
         display: 'flex',
-        alignItems: 'center',
-        gap: 0,
-        pointerEvents: 'none',
+        flexDirection: 'column',
+        backgroundColor: 'var(--dock-bg)',
+        borderRight: '1px solid var(--dock-border)',
+        backdropFilter: 'blur(20px)',
+        boxShadow: expanded ? '8px 0 32px var(--hg-black-30), 2px 0 8px var(--hg-black-20)' : 'none',
+        transition: 'width 0.2s ease',
+        overflow: 'hidden',
       }}
     >
+      {/* HomeGlow logo / collapse-expand toggle */}
       <Box
+        onClick={() => setExpanded((prev) => !prev)}
         sx={{
+          height: 64,
+          minHeight: 64,
           display: 'flex',
           alignItems: 'center',
-          gap: 0.5,
-          px: 2,
-          py: 1,
-          borderRadius: 'var(--hg-radius-2xl)',
-          backgroundColor: 'var(--dock-bg)',
-          border: '1px solid var(--dock-border)',
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 8px 32px var(--hg-black-30), 0 2px 8px var(--hg-black-20)',
-          pointerEvents: 'auto',
+          px: 1,
+          gap: 1.5,
+          cursor: 'pointer',
+          flexShrink: 0,
+          '&:hover': { backgroundColor: 'var(--hg-white-10)' },
         }}
       >
-        {/* HomeGlow Logo with Menu */}
-        <Box sx={{ position: 'relative' }} ref={menuAnchorRef}>
-          <ClickAwayListener onClickAway={() => setMenuOpen(false)}>
-            <Box>
-              <Tooltip title="Menu" placement="top">
-                <Box
-                  onClick={() => setMenuOpen(!menuOpen)}
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    borderRadius: 'var(--hg-radius-lg)',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      backgroundColor: 'var(--hg-white-10)',
-                      transform: 'scale(1.05)',
-                    },
-                    '&:active': {
-                      transform: 'scale(0.95)',
-                    },
-                  }}
-                >
-                  <img
-                    src="/HomeGlowLogo.svg"
-                    alt="HomeGlow"
-                    style={{
-                      height: '32px',
-                      width: 'auto',
-                      objectFit: 'contain',
-                    }}
-                  />
-                </Box>
-              </Tooltip>
-
-              {/* Popup Menu */}
-              {menuOpen && (
-                <Box
-                  sx={{
-                    position: 'absolute',
-                    bottom: '100%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    mb: 1.5,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 0.5,
-                    p: 1,
-                    // Capped near an item's half height plus the padding, so
-                    // the corners follow the items: a pill theme (999px) would
-                    // otherwise curve the ends into the first and last item.
-                    borderRadius: 'min(var(--hg-radius-xl), 28px)',
-                    backgroundColor: 'var(--dock-bg)',
-                    border: '1px solid var(--dock-border)',
-                    backdropFilter: 'blur(20px)',
-                    boxShadow: '0 8px 32px var(--hg-black-30), 0 2px 8px var(--hg-black-20)',
-                    minWidth: 180,
-                    animation: 'menuSlideUp 0.2s ease-out',
-                  }}
-                >
-                  {menuItems.map((item) => (
-                    <Box
-                      key={item.id}
-                      onClick={() => {
-                        item.action();
-                        setMenuOpen(false);
-                      }}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 1.5,
-                        px: 2,
-                        py: 1.25,
-                        borderRadius: 'var(--hg-radius-lg)',
-                        cursor: 'pointer',
-                        color: 'var(--text)',
-                        transition: 'all 0.15s ease',
-                        '&:hover': {
-                          backgroundColor: 'var(--hg-white-10)',
-                        },
-                      }}
-                    >
-                      <MenuIcon name={item.icon} size={18} color="var(--text)" />
-                      <Typography
-                        sx={{
-                          fontSize: '0.875rem',
-                          fontWeight: 500,
-                          color: 'var(--text)',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {item.label}
-                      </Typography>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Box>
-          </ClickAwayListener>
+        <Box sx={{ width: 44, height: 44, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <img src="/HomeGlowLogo.svg" alt="HomeGlow" style={{ height: '32px', width: 'auto', objectFit: 'contain' }} />
         </Box>
+        {expanded && (
+          <Typography sx={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+            HomeGlow
+          </Typography>
+        )}
+      </Box>
 
-        {/* Separator */}
-        <Box
-          sx={{
-            width: '1px',
-            height: '28px',
-            backgroundColor: 'var(--dock-separator)',
-            mx: 0.5,
-          }}
-        />
+      <Box sx={{ borderTop: '1px solid var(--dock-separator)' }} />
 
-        {/* Tab Icons */}
+      {/* Dashboard tabs */}
+      <Box sx={{ flex: 1, overflowY: 'auto', py: 1 }}>
         {displayTabs.map((tab) => {
           const tabNumber = tab.number ?? tab.id;
           const isActive = activeTab === tabNumber;
 
           return (
-            <Box
-              key={tab.id ?? tabNumber}
-              sx={{ position: 'relative' }}
-            >
-              {!widgetsLocked && tabNumber !== 1 && (
+            <Box key={tab.id ?? tabNumber} sx={{ position: 'relative', px: 1, mb: 0.5 }}>
+              {canDeleteTabs && (
                 <IconButton
                   size="small"
                   onClick={(e) => {
@@ -431,8 +333,8 @@ const TabBar = ({
                   }}
                   sx={{
                     position: 'absolute',
-                    top: -6,
-                    right: -6,
+                    top: -4,
+                    right: 2,
                     width: 16,
                     height: 16,
                     minWidth: 0,
@@ -440,58 +342,37 @@ const TabBar = ({
                     backgroundColor: 'var(--hg-error)',
                     color: 'white',
                     zIndex: 10,
-                    '&:hover': {
-                      backgroundColor: 'var(--hg-error-hover)',
-                    },
+                    '&:hover': { backgroundColor: 'var(--hg-error-hover)' },
                   }}
                 >
                   <Close sx={{ fontSize: 10 }} />
                 </IconButton>
               )}
-              <Tooltip title={tab.label || `Tab ${tabNumber}`} placement="top">
+              <Tooltip title={expanded ? '' : (tab.label || `Tab ${tabNumber}`)} placement="right">
                 <Box
-                  onClick={() => onTabChange(tabNumber)}
+                  onClick={() => selectTab(tabNumber)}
                   sx={{
-                    width: 44,
+                    width: '100%',
                     height: 44,
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
+                    gap: 1.5,
+                    px: 1.25,
                     cursor: 'pointer',
                     borderRadius: 'var(--hg-radius-lg)',
-                    position: 'relative',
-                    transition: 'all 0.2s ease',
                     backgroundColor: isActive ? 'var(--dock-active-bg)' : 'transparent',
                     backgroundImage: isActive ? 'var(--dock-active-image)' : 'none',
                     border: isActive ? '1.5px solid var(--dock-active-border)' : '1.5px solid transparent',
-                    boxShadow: isActive ? '0 2px 8px var(--hg-black-20)' : 'none',
-                    '&:hover': {
-                      backgroundColor: isActive ? 'var(--dock-active-bg)' : 'var(--hg-white-10)',
-                      transform: 'translateY(-2px)',
-                    },
-                    '&:active': {
-                      transform: 'scale(0.95)',
-                    },
+                    '&:hover': { backgroundColor: isActive ? 'var(--dock-active-bg)' : 'var(--hg-white-10)' },
                   }}
                 >
-                  <TabIcon
-                    name={tab.icon}
-                    size={22}
-                    color={isActive ? 'var(--dock-active-icon)' : 'var(--dock-icon)'}
-                  />
-                  {isActive && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        bottom: 2,
-                        left: '50%',
-                        transform: 'translateX(-50%)',
-                        width: 4,
-                        height: 4,
-                        borderRadius: '50%',
-                        backgroundColor: 'var(--dock-active-icon)',
-                      }}
-                    />
+                  <Box sx={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <TabIcon name={tab.icon} size={22} color={isActive ? 'var(--dock-active-icon)' : 'var(--dock-icon)'} />
+                  </Box>
+                  {expanded && (
+                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {tab.label || `Tab ${tabNumber}`}
+                    </Typography>
                   )}
                 </Box>
               </Tooltip>
@@ -499,57 +380,82 @@ const TabBar = ({
           );
         })}
 
-        {/* Add Tab Button (only in edit mode) */}
         {!widgetsLocked && (
-          <>
-            <Box
-              sx={{
-                width: '1px',
-                height: '28px',
-                backgroundColor: 'var(--dock-separator)',
-                mx: 0.5,
-              }}
-            />
-            <Tooltip title="Add new tab" placement="top">
+          <Box sx={{ px: 1 }}>
+            <Tooltip title={expanded ? '' : 'Add new tab'} placement="right">
               <Box
                 onClick={onAddTab}
                 sx={{
-                  width: 44,
+                  width: '100%',
                   height: 44,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
+                  gap: 1.5,
+                  px: 1.25,
                   cursor: 'pointer',
                   borderRadius: 'var(--hg-radius-lg)',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    backgroundColor: 'var(--hg-white-10)',
-                    transform: 'translateY(-2px)',
-                  },
+                  '&:hover': { backgroundColor: 'var(--hg-white-10)' },
                 }}
               >
-                <Add sx={{ fontSize: 20, color: 'var(--dock-icon)' }} />
+                <Box sx={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Add sx={{ fontSize: 20, color: 'var(--dock-icon)' }} />
+                </Box>
+                {expanded && (
+                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                    Add new tab
+                  </Typography>
+                )}
               </Box>
             </Tooltip>
-          </>
+          </Box>
         )}
+      </Box>
 
-        {/* Separator before screensaver */}
-        {screensaverCountdown && (
-          <>
+      {screensaverCountdown && (
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', py: 1 }}>
+          {screensaverCountdown}
+        </Box>
+      )}
+
+      <Box sx={{ borderTop: '1px solid var(--dock-separator)' }} />
+
+      {/* Utility buttons: refresh, lock, theme, settings */}
+      <Box sx={{ py: 1, px: 1, flexShrink: 0 }}>
+        {[
+          { id: 'refresh', icon: 'refresh', label: 'Refresh', action: onRefresh },
+          ...(isMobile ? [] : [{ id: 'lock', icon: 'move', label: widgetsLocked ? 'Move/Resize' : 'Lock Layout', action: onToggleLock }]),
+          { id: 'theme', icon: getThemeIconName(), label: getThemeLabel(), action: onToggleTheme },
+          { id: 'settings', icon: 'settings', label: 'Settings', action: onOpenSettings },
+        ].map((item) => (
+          <Tooltip key={item.id} title={expanded ? '' : item.label} placement="right">
             <Box
-              sx={{
-                width: '1px',
-                height: '28px',
-                backgroundColor: 'var(--dock-separator)',
-                mx: 0.5,
+              onClick={() => {
+                item.action();
+                setExpanded(false);
               }}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', px: 0.5 }}>
-              {screensaverCountdown}
+              sx={{
+                width: '100%',
+                height: 44,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                px: 1.25,
+                cursor: 'pointer',
+                borderRadius: 'var(--hg-radius-lg)',
+                '&:hover': { backgroundColor: 'var(--hg-white-10)' },
+              }}
+            >
+              <Box sx={{ width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <MenuIcon name={item.icon} size={18} color="var(--text)" />
+              </Box>
+              {expanded && (
+                <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                  {item.label}
+                </Typography>
+              )}
             </Box>
-          </>
-        )}
+          </Tooltip>
+        ))}
       </Box>
     </Box>
   );

@@ -7,7 +7,7 @@ import axios from 'axios';
 import PluginWidgetWrapper from './components/PluginWidgetWrapper.jsx';
 import WidgetContainer from './components/WidgetContainer.jsx';
 import MobileDashboard from './components/MobileDashboard.jsx';
-import TabBar from './components/TabBar.jsx';
+import AppShell from './components/AppShell.jsx';
 import ScreensaverCountdown from './components/ScreensaverCountdown.jsx';
 import UpdateIndicator from './components/UpdateIndicator.jsx';
 import { API_BASE_URL } from './utils/apiConfig.js';
@@ -1441,7 +1441,7 @@ const App = () => {
                 Welcome to HomeGlow
               </Typography>
               <Typography variant="body1" sx={{ color: 'var(--text-secondary)', mb: 1 }}>
-                Click the HomeGlow logo in the dock below and open Settings to choose which widgets you want to see.
+                Click the HomeGlow logo in the sidebar and open Settings to choose which widgets you want to see.
               </Typography>
               <Typography variant="body2" sx={{ color: 'var(--text-secondary)' }}>
                 Once you enable widgets, this dashboard will fill in automatically.
@@ -1490,11 +1490,11 @@ const App = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Floating Dock TabBar. The dock renders above MUI dialogs, so hide it
-          while the Admin Panel is open full-screen on mobile — otherwise it
-          covers the bottom action buttons of the panel's dialogs. */}
+      {/* The sidebar renders above MUI dialogs, so hide it while the Admin
+          Panel is open full-screen on mobile — otherwise it covers the
+          bottom action buttons of the panel's dialogs. */}
       {!(isMobile && showAdminPanel) && (
-      <TabBar
+      <AppShell
         tabs={tabs}
         activeTab={activeTab}
         onTabChange={handleTabChange}
@@ -1508,7 +1508,6 @@ const App = () => {
         theme={displayTheme}
         themeMode={themeMode}
         screensaverCountdown={
-          // No screensaver on mobile — don't show a countdown that never fires.
           isMobile ? null : (
             <ScreensaverCountdown
               enabled={screensaverSettings.enabled}
