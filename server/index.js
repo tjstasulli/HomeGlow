@@ -4480,9 +4480,6 @@ fastify.patch('/api/devices/:deviceName/tabs/:tabNumber', async (request, reply)
     return reply.status(400).send({ error: 'deviceName is required' });
   }
   ensureDeviceExists(deviceName);
-  if (parseInt(tabNumber) === 1) {
-    return reply.status(400).send({ error: 'Cannot modify home tab' });
-  }
 
   try {
     const updates = [];
@@ -4586,10 +4583,6 @@ fastify.delete('/api/devices/:deviceName/tabs/:tabNumber', async (request, reply
   }
   ensureDeviceExists(deviceName);
 
-  if (parseInt(tabNumber) === 1) {
-    return reply.status(400).send({ error: 'Cannot delete home tab' });
-  }
-
   try {
     const parsedTabNumber = parseInt(tabNumber, 10);
 
@@ -4598,27 +4591,41 @@ fastify.delete('/api/devices/:deviceName/tabs/:tabNumber', async (request, reply
       return reply.status(404).send({ error: 'Tab not found' });
     }
 
-    const homeTab = getTabByNumber(deviceName, 1);
+    // No tab is hardcoded as the merge target any more: it's whichever
+    // remaining tab has the lowest number. If tab 1 still exists this is
+    // identical to the old "always Home" behavior; if tab 1 was already
+    // deleted, the next-lowest tab quietly takes over - it is never
+    // renamed or re-iconed, this is purely where orphaned widgets land.
+    const mergeTargetTab = db
+      .prepare('SELECT * FROM tabs WHERE device_name = ? AND number != ? ORDER BY number ASC LIMIT 1')
+      .get(deviceName, parsedTabNumber);
+
+    if (!mergeTargetTab) {
+      return reply.status(400).send({ error: 'Cannot delete your only tab' });
+    }
+
     const sourceLayoutMap = parseTabConfigJson(sourceTab.config_json);
-    const homeLayoutMap = parseTabConfigJson(homeTab?.config_json);
-    let homeChanged = false;
+    const mergeTargetLayoutMap = parseTabConfigJson(mergeTargetTab.config_json);
+    let mergeTargetChanged = false;
 
     Object.entries(sourceLayoutMap).forEach(([widgetName, layout]) => {
-      if (!(widgetName in homeLayoutMap)) {
-        homeLayoutMap[widgetName] = normalizeLayoutFields(layout);
-        homeChanged = true;
+      if (!(widgetName in mergeTargetLayoutMap)) {
+        mergeTargetLayoutMap[widgetName] = normalizeLayoutFields(layout);
+        mergeTargetChanged = true;
       }
     });
 
-    if (homeTab && homeChanged) {
-      saveTabConfigById(homeTab.id, homeLayoutMap);
+    if (mergeTargetChanged) {
+      saveTabConfigById(mergeTargetTab.id, mergeTargetLayoutMap);
     }
 
     const deleteStmt = db.prepare('DELETE FROM tabs WHERE number = ? AND device_name = ?');
     deleteStmt.run(parsedTabNumber, deviceName);
 
+    // No tab is excluded from renumbering any more - gaps are closed
+    // starting at 1, the same as every other tab.
     const remainingTabs = db
-      .prepare('SELECT id FROM tabs WHERE device_name = ? AND number != 1 ORDER BY number ASC')
+      .prepare('SELECT id FROM tabs WHERE device_name = ? ORDER BY number ASC')
       .all(deviceName);
 
     const renumberTransaction = db.transaction((tabRows) => {
@@ -4630,7 +4637,7 @@ fastify.delete('/api/devices/:deviceName/tabs/:tabNumber', async (request, reply
       });
 
       tabRows.forEach((row, index) => {
-        finalStmt.run(index + 2, row.id, deviceName);
+        finalStmt.run(index + 1, row.id, deviceName);
       });
     });
 

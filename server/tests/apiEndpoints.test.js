@@ -278,6 +278,70 @@ test('deleting a non-home tab moves assigned widgets to Home tab', async () => {
     assert.equal(movedAssignment.tab_number, 1);
 });
 
+test('deleting the home tab moves its widgets to the new lowest tab, and home becomes deletable', async () => {
+    const deviceName = `delete-home-tab-${Date.now()}`;
+
+    const createTabRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/tabs`, {
+        method: 'POST',
+        body: JSON.stringify({ label: 'Extras', icon: 'star', show_label: true }),
+    });
+    assert.equal(createTabRes.status, 200);
+    assert.equal(createTabRes.body.number, 2);
+
+    const createAssignmentRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/widget-assignments`, {
+        method: 'POST',
+        body: JSON.stringify({ widget_name: 'plugin:sample-widget', tabNumber: 1 }),
+    });
+    assert.equal(createAssignmentRes.status, 200);
+
+    const deleteTabRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/tabs/1`, {
+        method: 'DELETE',
+    });
+    assert.equal(deleteTabRes.status, 200);
+
+    const tabsRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/tabs`);
+    assert.equal(tabsRes.status, 200);
+    assert.equal(tabsRes.body.length, 1);
+    assert.equal(tabsRes.body[0].number, 1, 'the sole survivor is renumbered to 1, not left at 2');
+    assert.equal(tabsRes.body[0].label, 'Extras', 'the survivor keeps its own label - nothing renames it to Home');
+
+    const assignmentsRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/widget-assignments`);
+    assert.equal(assignmentsRes.status, 200);
+    const movedAssignment = assignmentsRes.body.find((row) => row.widget_name === 'plugin:sample-widget');
+    assert.ok(movedAssignment, 'Expected plugin assignment to survive home-tab deletion');
+    assert.equal(movedAssignment.tab_number, 1, 'merged onto the renumbered survivor, now tab 1');
+});
+
+test('deleting a device\'s only remaining tab is refused', async () => {
+    const deviceName = `delete-only-tab-${Date.now()}`;
+
+    // A brand-new device has exactly one tab (Home, number 1) and nothing else.
+    const deleteTabRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/tabs/1`, {
+        method: 'DELETE',
+    });
+    assert.equal(deleteTabRes.status, 400);
+    assert.equal(deleteTabRes.body.error, 'Cannot delete your only tab');
+
+    const tabsRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/tabs`);
+    assert.equal(tabsRes.status, 200);
+    assert.equal(tabsRes.body.length, 1, 'the only tab was not deleted');
+});
+
+test('the home tab can be renamed like any other tab', async () => {
+    const deviceName = `rename-home-tab-${Date.now()}`;
+
+    const patchRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/tabs/1`, {
+        method: 'PATCH',
+        body: JSON.stringify({ label: 'Main', icon: 'star' }),
+    });
+    assert.equal(patchRes.status, 200);
+
+    const tabsRes = await api(`/api/devices/${encodeURIComponent(deviceName)}/tabs`);
+    assert.equal(tabsRes.status, 200);
+    assert.equal(tabsRes.body[0].label, 'Main');
+    assert.equal(tabsRes.body[0].icon, 'star');
+});
+
 test('device settings endpoints merge incoming keys without overwriting unspecified values', async () => {
     const deviceName = `device-settings-${Date.now()}`;
 
