@@ -7,10 +7,13 @@ const useFetchTabs = (API_DEVICE_URL) => {
   const fetchTabs = useCallback(async () => {
     try {
       const response = await axios.get(`${API_DEVICE_URL}/tabs`);
-      setTabs(Array.isArray(response.data) ? response.data : []);
+      const nextTabs = Array.isArray(response.data) ? response.data : [];
+      setTabs(nextTabs);
+      return nextTabs;
     } catch (error) {
       console.error('Error fetching tabs:', error);
       setTabs([]);
+      return [];
     }
   }, [API_DEVICE_URL]);
 

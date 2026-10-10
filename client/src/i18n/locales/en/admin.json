@@ -14,7 +14,7 @@
     "saveChanges": "Save Changes",
     "tabLabel": "Tab Label",
     "selectIcon": "Select an Icon",
-    "manageHelp": "Manage dashboard tabs. Reorder with the arrows, or drag rows on a desktop browser. Home tab cannot be edited or deleted.",
+    "manageHelp": "Manage dashboard tabs. Reorder with the arrows, or drag rows on a desktop browser. You can't delete your last remaining tab.",
     "addTab": "Add Tab",
     "order": "Order",
     "moveUpNamed": "Move {{name}} up",

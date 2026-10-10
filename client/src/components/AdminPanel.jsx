@@ -2663,36 +2663,43 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                     </TableHead>
                     <TableBody>
                       {[...tabs].sort((a, b) => a.number - b.number).map((tab) => {
-                        const isHome = tab.number === 1;
+                        // Position 1 stays the anchor for drag-reordering (it's
+                        // always first, same as today) - that's a separate,
+                        // deliberately unchanged concern from whether a tab can
+                        // be edited or deleted, which no longer singles out any
+                        // one tab number. Only the device's last remaining tab
+                        // can't be deleted now, matching the server's own guard.
+                        const isAnchored = tab.number === 1;
+                        const isOnlyTab = tabs.length === 1;
                         const orderIndex = draggableTabsInOrder().findIndex((t) => t.number === tab.number);
                         const lastOrderIndex = draggableTabsInOrder().length - 1;
                         return (
                           <TableRow
                             key={tab.id}
-                            draggable={!isHome}
+                            draggable={!isAnchored}
                             onDragStart={() => handleTabDragStart(tab.number)}
                             onDragOver={(e) => {
-                              if (!isHome) {
+                              if (!isAnchored) {
                                 e.preventDefault();
                               }
                             }}
                             onDrop={() => {
-                              if (!isHome) {
+                              if (!isAnchored) {
                                 handleTabDrop(tab.number);
                               }
                             }}
                             sx={{
-                              cursor: isHome ? 'default' : 'grab',
+                              cursor: isAnchored ? 'default' : 'grab',
                               opacity: draggingTabNumber === tab.number ? 0.65 : 1,
                             }}
                           >
                             <TableCell data-label={t('admin:tabs.order')}>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                {!isHome && (
+                                {!isAnchored && (
                                   <DragIndicator fontSize="small" sx={{ opacity: 0.5, display: { xs: 'none', sm: 'block' } }} />
                                 )}
                                 <Chip label={tab.number} size="small" sx={{ mr: 0.5 }} />
-                                {!isHome && (
+                                {!isAnchored && (
                                   <>
                                     <Tooltip title={t('admin:tabs.moveUpNamed', { name: tab.label || t('admin:tabs.label') })}>
                                       <span>
@@ -2724,9 +2731,6 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                             </TableCell>
                             <TableCell data-label={t('admin:tabs.label')}>
                               {tab.label}
-                              {isHome && (
-                                <Chip size="small" label={t('admin:tabs.home')} color="primary" sx={{ ml: 1 }} />
-                              )}
                             </TableCell>
                             <TableCell data-label={t('admin:tabs.icon')}>
                               <Chip size="small" label={tab.icon} />
@@ -2745,7 +2749,6 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                                 onClick={() => openEditTabDialog(tab)}
                                 color="primary"
                                 size="small"
-                                disabled={isHome}
                               >
                                 <Edit />
                               </IconButton>
@@ -2753,7 +2756,7 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                                 onClick={() => requestDeleteTab(tab)}
                                 color="error"
                                 size="small"
-                                disabled={isHome}
+                                disabled={isOnlyTab}
                               >
                                 <Delete />
                               </IconButton>

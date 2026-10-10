@@ -1106,21 +1106,27 @@ const App = () => {
   };
 
   const handleDeleteTab = async (tabNumber) => {
-    if (!window.confirm('Are you sure you want to delete this tab? Widgets will be moved to the Home tab.')) {
+    if (!window.confirm('Are you sure you want to delete this tab? Its widgets will be moved to another tab.')) {
       return;
     }
 
     try {
       await axios.delete(`${API_DEVICE_URL}/tabs/${tabNumber}`);
-      await fetchTabs();
+      const updatedTabs = await fetchTabs();
+
       await fetchWidgetAssignments();
 
       if (activeTab === tabNumber) {
-        setActiveTab(1);
+        // No tab is hardcoded as "the" fallback any more - land on whichever
+        // tab is now lowest-numbered, mirroring the server's merge target.
+        const lowestRemaining = Array.isArray(updatedTabs) && updatedTabs.length > 0
+          ? Math.min(...updatedTabs.map((tab) => tab.number))
+          : 1;
+        setActiveTab(lowestRemaining);
       }
     } catch (error) {
       console.error('Error deleting tab:', error);
-      alert('Failed to delete tab. Please try again.');
+      alert(error.response?.data?.error || 'Failed to delete tab. Please try again.');
     }
   };
 

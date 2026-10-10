@@ -14,7 +14,7 @@
     "saveChanges": "Guardar cambios",
     "tabLabel": "Nombre de la pestaña",
     "selectIcon": "Elige un icono",
-    "manageHelp": "Gestiona las pestañas del panel. Reordénalas con las flechas o arrastrando las filas en un navegador de escritorio. La pestaña Inicio no se puede editar ni eliminar.",
+    "manageHelp": "Gestiona las pestañas del panel. Reordénalas con las flechas o arrastrando las filas en un navegador de escritorio. No puedes eliminar tu última pestaña restante.",
     "addTab": "Añadir pestaña",
     "order": "Orden",
     "moveUpNamed": "Subir {{name}}",
