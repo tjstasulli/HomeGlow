@@ -23,6 +23,8 @@ const AppShell = ({
   theme,
   themeMode,
   screensaverCountdown,
+  settingsOpen,
+  settingsContent,
   children,
 }) => {
   const isMobile = useIsMobile();
@@ -54,7 +56,7 @@ const AppShell = ({
           ml: isMobile ? 0 : `${SIDEBAR_COLLAPSED_WIDTH}px`,
         }}
       >
-        {children}
+        {settingsOpen ? settingsContent : children}
       </Box>
     </Box>
   );

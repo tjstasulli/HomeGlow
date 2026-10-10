@@ -1,6 +1,6 @@
 // client/src/app.jsx
 import React, { useState, useEffect, useMemo, useCallback, useRef, lazy, Suspense } from 'react';
-import { IconButton, Box, Dialog, DialogContent, Typography, ThemeProvider, createTheme } from '@mui/material';
+import { IconButton, Box, Typography, ThemeProvider, createTheme } from '@mui/material';
 import { Close } from '@mui/icons-material';
 
 import axios from 'axios';
@@ -1327,6 +1327,59 @@ const App = () => {
 
   const tree = (
     <>
+      <AppShell
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        widgetsLocked={widgetsLocked}
+        onAddTab={handleAddTab}
+        onDeleteTab={handleDeleteTab}
+        onToggleTheme={toggleTheme}
+        onToggleLock={toggleWidgetsLock}
+        onOpenSettings={toggleAdminPanel}
+        onRefresh={handlePageRefresh}
+        theme={displayTheme}
+        themeMode={themeMode}
+        screensaverCountdown={
+          isMobile ? null : (
+            <ScreensaverCountdown
+              enabled={screensaverSettings.enabled}
+              timeoutMinutes={screensaverSettings.timeout}
+              lastActivityRef={lastActivityRef}
+              screensaverActive={screensaverActive}
+            />
+          )
+        }
+        settingsOpen={showAdminPanel}
+        settingsContent={
+          <Box sx={{ position: 'relative', p: { xs: 1.5, sm: 3 } }}>
+            <IconButton
+              onClick={toggleAdminPanel}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                color: 'text.secondary',
+                zIndex: 1,
+                '&:hover': { color: 'error.main' },
+              }}
+            >
+              <Close />
+            </IconButton>
+            <Suspense fallback={<Typography sx={{ py: 2 }}>Loading settings...</Typography>}>
+              <AdminPanel
+                setWidgetSettings={setWidgetSettings}
+                onRequestClose={toggleAdminPanel}
+                onPluginsChanged={fetchInstalledPlugins}
+                onTabsChanged={async () => {
+                  await fetchTabs();
+                  await fetchWidgetAssignments();
+                }}
+              />
+            </Suspense>
+          </Box>
+        }
+      >
       <Box sx={{ width: '100%', minHeight: '100vh', position: 'relative', pb: '80px' }}>
         {/* The theme's scene. The widget grid and the phone layout each
             draw it over their own page background; a tab with no widgets
@@ -1450,75 +1503,7 @@ const App = () => {
           </Box>
         )}
       </Box>
-
-      <Dialog
-        open={showAdminPanel}
-        onClose={toggleAdminPanel}
-        maxWidth="lg"
-        fullScreen={isMobile}
-        // An edge for the floating panel, which can sink into a page background
-        // of a similar solid color (#230). Full screen on a phone needs none.
-        slotProps={{ paper: { sx: isMobile ? {} : { border: '1px solid var(--card-border)' } } }}
-      >
-        <DialogContent sx={{ position: 'relative', '@media (max-width:599.95px)': { p: 1.5 } }}>
-          <IconButton
-            onClick={toggleAdminPanel}
-            sx={{
-              position: 'absolute',
-              right: 8,
-              top: 8,
-              color: 'text.secondary',
-              zIndex: 1,
-              '&:hover': {
-                color: 'error.main',
-              },
-            }}
-          >
-            <Close />
-          </IconButton>
-          <Suspense fallback={<Typography sx={{ py: 2 }}>Loading settings...</Typography>}>
-            <AdminPanel
-              setWidgetSettings={setWidgetSettings}
-              onRequestClose={toggleAdminPanel}
-              onPluginsChanged={fetchInstalledPlugins}
-              onTabsChanged={async () => {
-                await fetchTabs();
-                await fetchWidgetAssignments();
-              }}
-            />
-          </Suspense>
-        </DialogContent>
-      </Dialog>
-
-      {/* The sidebar renders above MUI dialogs, so hide it while the Admin
-          Panel is open full-screen on mobile — otherwise it covers the
-          bottom action buttons of the panel's dialogs. */}
-      {!(isMobile && showAdminPanel) && (
-      <AppShell
-        tabs={tabs}
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        widgetsLocked={widgetsLocked}
-        onAddTab={handleAddTab}
-        onDeleteTab={handleDeleteTab}
-        onToggleTheme={toggleTheme}
-        onToggleLock={toggleWidgetsLock}
-        onOpenSettings={toggleAdminPanel}
-        onRefresh={handlePageRefresh}
-        theme={displayTheme}
-        themeMode={themeMode}
-        screensaverCountdown={
-          isMobile ? null : (
-            <ScreensaverCountdown
-              enabled={screensaverSettings.enabled}
-              timeoutMinutes={screensaverSettings.timeout}
-              lastActivityRef={lastActivityRef}
-              screensaverActive={screensaverActive}
-            />
-          )
-        }
-      />
-      )}
+      </AppShell>
 
       <Suspense fallback={null}>
         <TabIconModal

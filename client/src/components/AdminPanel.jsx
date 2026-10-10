@@ -94,7 +94,7 @@ import RefreshIntervalSelect from './RefreshIntervalSelect';
 import ScreensaverIntervalSlider from './ScreensaverIntervalSlider';
 import GoogleAccountConnection from './GoogleAccountConnection';
 import ClamValueModal from './ClamValueModal';
-import { ADMIN_LAYOUT, ADMIN_TABS, normalizeAdminLocation, parseAdminHash, setAdminHash } from '../utils/adminNavigation.js';
+import { ADMIN_LAYOUT, normalizeAdminLocation, parseAdminHash, setAdminHash } from '../utils/adminNavigation.js';
 import SoundPicker from './SoundPicker';
 import ControlsOnDisplay from './ControlsOnDisplay';
 import useFetchTabs from '../hooks/useFetchTabs.js';
@@ -1946,21 +1946,8 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
   return (
     <Box sx={{ width: '100%', maxWidth: 1200, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom sx={{ pr: { xs: 5, sm: 0 } }}>
-        ⚙️ {t('admin:panelTitle')}
+        {t(`admin:panelTabs.${location.tab}`)}
       </Typography>
-
-      <Tabs
-        value={ADMIN_TABS.indexOf(location.tab)}
-        onChange={(e, index) => navigate({ tab: ADMIN_TABS[index] })}
-        variant="scrollable"
-        scrollButtons="auto"
-        allowScrollButtonsMobile
-        sx={{ mb: 3 }}
-      >
-        {ADMIN_TABS.map((name) => (
-          <Tab key={name} label={t(`admin:panelTabs.${name}`)} />
-        ))}
-      </Tabs>
 
       {sections.length > 0 && (
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
