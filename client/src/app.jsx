@@ -4,6 +4,7 @@ import { IconButton, Box, Typography, ThemeProvider, createTheme } from '@mui/ma
 import { Close } from '@mui/icons-material';
 
 import axios from 'axios';
+import { useTranslation } from 'react-i18next';
 import PluginWidgetWrapper from './components/PluginWidgetWrapper.jsx';
 import WidgetContainer from './components/WidgetContainer.jsx';
 import MobileDashboard from './components/MobileDashboard.jsx';
@@ -55,7 +56,7 @@ import ThemeAmbience from './themes/engine/ThemeAmbience.jsx';
 import { normalizeWidgetSettings, BASE_WIDGET_SETTINGS, resolveWidgetOpacity } from './utils/widgetSettings.js';
 import { buildMobileWidgetList } from './utils/mobileWidgets.js';
 import { CORE_CONTROLS, resolveHiddenControls } from './utils/displayControls.js';
-import { parseAdminHash, clearAdminHash } from './utils/adminNavigation.js';
+import { parseAdminHash, clearAdminHash, setAdminHash, ADMIN_TABS } from './utils/adminNavigation.js';
 import './index.css';
 
 const loadAdminPanel = () => import('./components/AdminPanel.jsx');
@@ -197,6 +198,7 @@ const WidgetLoadingFallback = ({ label }) => (
 );
 
 const App = () => {
+  const { t } = useTranslation();
   const API_DEVICE_URL = getDeviceApiBase(API_BASE_URL);
   const isMobile = useIsMobile();
   const [theme, setTheme] = useState(readLocalTheme);
@@ -211,6 +213,10 @@ const App = () => {
   const [widgetSettings, setWidgetSettings] = useState({ ...DEFAULT_WIDGET_SETTINGS });
   const [pluginSettings, setPluginSettings] = useState({});
   const [showAdminPanel, setShowAdminPanel] = useState(false);
+  // Mirrors AdminPanel's own `location.tab`, kept in sync via the hash so
+  // the sidebar can highlight the active Settings section without lifting
+  // AdminPanel's internal navigation state out of that component.
+  const [adminTab, setAdminTab] = useState(() => parseAdminHash()?.tab || ADMIN_TABS[0]);
   // Household settings the dashboard reads directly (chore sound preferences).
   // Credentials are no longer among them — GET /api/settings redacts secrets,
   // and weather is fetched server-side.
@@ -1078,9 +1084,36 @@ const App = () => {
     if (parsed && !showAdminPanel) {
       setShowAdminPanel(true);
     }
-    // Only run on mount — subsequent hash changes are handled by AdminPanel.
+    // Only run on mount — subsequent hash changes are handled by the
+    // listener below (for the sidebar's adminTab) and by AdminPanel (for
+    // its own location/section/subsection).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep the sidebar's Settings-mode highlight in sync with the hash,
+  // whether it changed from AdminPanel's own navigation, a hand-edited
+  // URL, or the sidebar's own selectAdminTab below.
+  useEffect(() => {
+    const onHashChange = () => {
+      const parsed = parseAdminHash();
+      if (parsed) setAdminTab(parsed.tab);
+    };
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // setAdminHash uses replaceState, which doesn't fire a native hashchange
+  // event — dispatch one manually so both this component's own listener
+  // above and AdminPanel's existing listener pick up the navigation.
+  const selectAdminTab = (name) => {
+    setAdminHash({ tab: name });
+    window.dispatchEvent(new Event('hashchange'));
+  };
+
+  const adminSections = useMemo(
+    () => ADMIN_TABS.map((name) => ({ name, label: t(`admin:panelTabs.${name}`) })),
+    [t],
+  );
 
   const handlePageRefresh = () => {
     window.location.reload();
@@ -1110,15 +1143,29 @@ const App = () => {
       return;
     }
 
+    // Any tab's deletion renumbers the whole list, not just the deleted
+    // one — resolve the active tab by its stable id afterward rather than
+    // assuming only a self-deletion needs correcting.
+    const activeTabBeforeDelete = tabs.find((tab) => tab.number === activeTab);
+
     try {
       await axios.delete(`${API_DEVICE_URL}/tabs/${tabNumber}`);
       const updatedTabs = await fetchTabs();
 
       await fetchWidgetAssignments();
 
-      if (activeTab === tabNumber) {
-        // No tab is hardcoded as "the" fallback any more - land on whichever
-        // tab is now lowest-numbered, mirroring the server's merge target.
+      const survivor = activeTabBeforeDelete && Array.isArray(updatedTabs)
+        ? updatedTabs.find((tab) => tab.id === activeTabBeforeDelete.id)
+        : null;
+
+      if (survivor) {
+        if (survivor.number !== activeTab) {
+          setActiveTab(survivor.number);
+        }
+      } else {
+        // The active tab itself was deleted - no tab is hardcoded as "the"
+        // fallback any more, land on whichever tab is now lowest-numbered,
+        // mirroring the server's merge target.
         const lowestRemaining = Array.isArray(updatedTabs) && updatedTabs.length > 0
           ? Math.min(...updatedTabs.map((tab) => tab.number))
           : 1;
@@ -1357,6 +1404,10 @@ const App = () => {
           )
         }
         settingsOpen={showAdminPanel}
+        adminSections={adminSections}
+        activeAdminTab={adminTab}
+        onSelectAdminTab={selectAdminTab}
+        onBackToDashboard={toggleAdminPanel}
         settingsContent={
           <Box sx={{ position: 'relative', p: { xs: 1.5, sm: 3 } }}>
             <IconButton
@@ -1378,8 +1429,24 @@ const App = () => {
                 onRequestClose={toggleAdminPanel}
                 onPluginsChanged={fetchInstalledPlugins}
                 onTabsChanged={async () => {
-                  await fetchTabs();
+                  // The tabs list can renumber here (delete, reorder) same
+                  // as the sidebar's own quick-delete - resolve the active
+                  // tab by its stable id rather than assuming it's unaffected.
+                  const activeTabBeforeChange = tabs.find((tab) => tab.number === activeTab);
+                  const updatedTabs = await fetchTabs();
                   await fetchWidgetAssignments();
+
+                  const survivor = activeTabBeforeChange && Array.isArray(updatedTabs)
+                    ? updatedTabs.find((tab) => tab.id === activeTabBeforeChange.id)
+                    : null;
+
+                  if (survivor) {
+                    if (survivor.number !== activeTab) {
+                      setActiveTab(survivor.number);
+                    }
+                  } else if (activeTabBeforeChange && Array.isArray(updatedTabs) && updatedTabs.length > 0) {
+                    setActiveTab(Math.min(...updatedTabs.map((tab) => tab.number)));
+                  }
                 }}
               />
             </Suspense>

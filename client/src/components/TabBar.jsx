@@ -1,7 +1,16 @@
 import React, { useState } from 'react';
 import { Box, IconButton, Tooltip, Typography } from '@mui/material';
-import { Close, Add } from '@mui/icons-material';
+import { Close, Add, ArrowBack } from '@mui/icons-material';
 import useIsMobile from '../hooks/useIsMobile.js';
+
+const ADMIN_SECTION_ICONS = {
+  dashboard: 'chart',
+  look: 'lightbulb',
+  displays: 'camera',
+  family: 'heart',
+  security: 'hand',
+  system: 'building',
+};
 
 const TabIcon = ({ name, size = 24, color = 'currentColor' }) => {
   const icons = {
@@ -237,6 +246,11 @@ const TabBar = ({
   theme,
   themeMode,
   screensaverCountdown,
+  settingsOpen,
+  adminSections,
+  activeAdminTab,
+  onSelectAdminTab,
+  onBackToDashboard,
 }) => {
   const [expanded, setExpanded] = useState(false);
   const isMobile = useIsMobile();
@@ -265,6 +279,11 @@ const TabBar = ({
 
   const selectTab = (tabNumber) => {
     onTabChange(tabNumber);
+    setExpanded(false);
+  };
+
+  const selectAdminSection = (name) => {
+    onSelectAdminTab(name);
     setExpanded(false);
   };
 
@@ -316,41 +335,14 @@ const TabBar = ({
 
       <Box sx={{ borderTop: '1px solid var(--dock-separator)' }} />
 
-      {/* Dashboard tabs */}
+      {/* Dashboard tabs / Settings sections */}
       <Box sx={{ flex: 1, overflowY: 'auto', py: 1 }}>
-        {displayTabs.map((tab) => {
-          const tabNumber = tab.number ?? tab.id;
-          const isActive = activeTab === tabNumber;
-
-          return (
-            <Box key={tab.id ?? tabNumber} sx={{ position: 'relative', px: 1, mb: 0.5 }}>
-              {canDeleteTabs && (
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteTab(tabNumber);
-                  }}
-                  sx={{
-                    position: 'absolute',
-                    top: -4,
-                    right: 2,
-                    width: 16,
-                    height: 16,
-                    minWidth: 0,
-                    padding: 0,
-                    backgroundColor: 'var(--hg-error)',
-                    color: 'white',
-                    zIndex: 10,
-                    '&:hover': { backgroundColor: 'var(--hg-error-hover)' },
-                  }}
-                >
-                  <Close sx={{ fontSize: 10 }} />
-                </IconButton>
-              )}
-              <Tooltip title={expanded ? '' : (tab.label || `Tab ${tabNumber}`)} placement="right">
+        {settingsOpen ? (
+          <>
+            <Box sx={{ px: 1, mb: 0.5 }}>
+              <Tooltip title={expanded ? '' : 'Back to dashboard'} placement="right">
                 <Box
-                  onClick={() => selectTab(tabNumber)}
+                  onClick={onBackToDashboard}
                   sx={{
                     width: '100%',
                     height: 44,
@@ -360,54 +352,154 @@ const TabBar = ({
                     px: 1.25,
                     cursor: 'pointer',
                     borderRadius: 'var(--hg-radius-lg)',
-                    backgroundColor: isActive ? 'var(--dock-active-bg)' : 'transparent',
-                    backgroundImage: isActive ? 'var(--dock-active-image)' : 'none',
-                    border: isActive ? '1.5px solid var(--dock-active-border)' : '1.5px solid transparent',
-                    '&:hover': { backgroundColor: isActive ? 'var(--dock-active-bg)' : 'var(--hg-white-10)' },
+                    '&:hover': { backgroundColor: 'var(--hg-white-10)' },
                   }}
                 >
                   <Box sx={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <TabIcon name={tab.icon} size={22} color={isActive ? 'var(--dock-active-icon)' : 'var(--dock-icon)'} />
+                    <ArrowBack sx={{ fontSize: 20, color: 'var(--dock-icon)' }} />
                   </Box>
                   {expanded && (
-                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {tab.label || `Tab ${tabNumber}`}
+                    <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                      Back to dashboard
                     </Typography>
                   )}
                 </Box>
               </Tooltip>
             </Box>
-          );
-        })}
 
-        {!widgetsLocked && (
-          <Box sx={{ px: 1 }}>
-            <Tooltip title={expanded ? '' : 'Add new tab'} placement="right">
-              <Box
-                onClick={onAddTab}
-                sx={{
-                  width: '100%',
-                  height: 44,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  px: 1.25,
-                  cursor: 'pointer',
-                  borderRadius: 'var(--hg-radius-lg)',
-                  '&:hover': { backgroundColor: 'var(--hg-white-10)' },
-                }}
-              >
-                <Box sx={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <Add sx={{ fontSize: 20, color: 'var(--dock-icon)' }} />
+            <Box sx={{ borderTop: '1px solid var(--dock-separator)', mx: 1, mb: 0.5 }} />
+
+            {(adminSections || []).map((section) => {
+              const isActive = activeAdminTab === section.name;
+
+              return (
+                <Box key={section.name} sx={{ px: 1, mb: 0.5 }}>
+                  <Tooltip title={expanded ? '' : section.label} placement="right">
+                    <Box
+                      onClick={() => selectAdminSection(section.name)}
+                      sx={{
+                        width: '100%',
+                        height: 44,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        px: 1.25,
+                        cursor: 'pointer',
+                        borderRadius: 'var(--hg-radius-lg)',
+                        backgroundColor: isActive ? 'var(--dock-active-bg)' : 'transparent',
+                        backgroundImage: isActive ? 'var(--dock-active-image)' : 'none',
+                        border: isActive ? '1.5px solid var(--dock-active-border)' : '1.5px solid transparent',
+                        '&:hover': { backgroundColor: isActive ? 'var(--dock-active-bg)' : 'var(--hg-white-10)' },
+                      }}
+                    >
+                      <Box sx={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <TabIcon name={ADMIN_SECTION_ICONS[section.name]} size={22} color={isActive ? 'var(--dock-active-icon)' : 'var(--dock-icon)'} />
+                      </Box>
+                      {expanded && (
+                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {section.label}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Tooltip>
                 </Box>
-                {expanded && (
-                  <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap' }}>
-                    Add new tab
-                  </Typography>
-                )}
+              );
+            })}
+          </>
+        ) : (
+          <>
+            {displayTabs.map((tab) => {
+              const tabNumber = tab.number ?? tab.id;
+              const isActive = activeTab === tabNumber;
+
+              return (
+                <Box key={tab.id ?? tabNumber} sx={{ position: 'relative', px: 1, mb: 0.5 }}>
+                  {canDeleteTabs && (
+                    <IconButton
+                      size="small"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onDeleteTab(tabNumber);
+                      }}
+                      sx={{
+                        position: 'absolute',
+                        top: -4,
+                        right: 2,
+                        width: 16,
+                        height: 16,
+                        minWidth: 0,
+                        padding: 0,
+                        backgroundColor: 'var(--hg-error)',
+                        color: 'white',
+                        zIndex: 10,
+                        '&:hover': { backgroundColor: 'var(--hg-error-hover)' },
+                      }}
+                    >
+                      <Close sx={{ fontSize: 10 }} />
+                    </IconButton>
+                  )}
+                  <Tooltip title={expanded ? '' : (tab.label || `Tab ${tabNumber}`)} placement="right">
+                    <Box
+                      onClick={() => selectTab(tabNumber)}
+                      sx={{
+                        width: '100%',
+                        height: 44,
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 1.5,
+                        px: 1.25,
+                        cursor: 'pointer',
+                        borderRadius: 'var(--hg-radius-lg)',
+                        backgroundColor: isActive ? 'var(--dock-active-bg)' : 'transparent',
+                        backgroundImage: isActive ? 'var(--dock-active-image)' : 'none',
+                        border: isActive ? '1.5px solid var(--dock-active-border)' : '1.5px solid transparent',
+                        '&:hover': { backgroundColor: isActive ? 'var(--dock-active-bg)' : 'var(--hg-white-10)' },
+                      }}
+                    >
+                      <Box sx={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <TabIcon name={tab.icon} size={22} color={isActive ? 'var(--dock-active-icon)' : 'var(--dock-icon)'} />
+                      </Box>
+                      {expanded && (
+                        <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {tab.label || `Tab ${tabNumber}`}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Tooltip>
+                </Box>
+              );
+            })}
+
+            {!widgetsLocked && (
+              <Box sx={{ px: 1 }}>
+                <Tooltip title={expanded ? '' : 'Add new tab'} placement="right">
+                  <Box
+                    onClick={onAddTab}
+                    sx={{
+                      width: '100%',
+                      height: 44,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      px: 1.25,
+                      cursor: 'pointer',
+                      borderRadius: 'var(--hg-radius-lg)',
+                      '&:hover': { backgroundColor: 'var(--hg-white-10)' },
+                    }}
+                  >
+                    <Box sx={{ width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Add sx={{ fontSize: 20, color: 'var(--dock-icon)' }} />
+                    </Box>
+                    {expanded && (
+                      <Typography sx={{ fontSize: '0.875rem', fontWeight: 500, color: 'var(--text)', whiteSpace: 'nowrap' }}>
+                        Add new tab
+                      </Typography>
+                    )}
+                  </Box>
+                </Tooltip>
               </Box>
-            </Tooltip>
-          </Box>
+            )}
+          </>
         )}
       </Box>
 

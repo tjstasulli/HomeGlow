@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box } from '@mui/material';
-import useIsMobile from '../hooks/useIsMobile.js';
 import TabBar, { SIDEBAR_COLLAPSED_WIDTH } from './TabBar.jsx';
 
 // The persistent app frame: a collapsible left sidebar (TabBar, despite the
@@ -25,10 +24,12 @@ const AppShell = ({
   screensaverCountdown,
   settingsOpen,
   settingsContent,
+  adminSections,
+  activeAdminTab,
+  onSelectAdminTab,
+  onBackToDashboard,
   children,
 }) => {
-  const isMobile = useIsMobile();
-
   return (
     <Box sx={{ display: 'flex', width: '100%', minHeight: '100vh' }}>
       <TabBar
@@ -45,6 +46,11 @@ const AppShell = ({
         theme={theme}
         themeMode={themeMode}
         screensaverCountdown={screensaverCountdown}
+        settingsOpen={settingsOpen}
+        adminSections={adminSections}
+        activeAdminTab={activeAdminTab}
+        onSelectAdminTab={onSelectAdminTab}
+        onBackToDashboard={onBackToDashboard}
       />
       <Box
         sx={{
@@ -52,8 +58,9 @@ const AppShell = ({
           minWidth: 0,
           // Reserve space for the collapsed rail only - the expanded state
           // overlays on top via its own position:fixed, it never resizes
-          // this box.
-          ml: isMobile ? 0 : `${SIDEBAR_COLLAPSED_WIDTH}px`,
+          // this box. The rail renders at this width on every viewport
+          // size, so the margin isn't conditioned on mobile either.
+          ml: `${SIDEBAR_COLLAPSED_WIDTH}px`,
         }}
       >
         {settingsOpen ? settingsContent : children}
