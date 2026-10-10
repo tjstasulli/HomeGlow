@@ -977,7 +977,7 @@ const ChoreWidget = ({ refreshNonce = 0, hiddenControls = [] }) => {
         )}
 
         <Chip
-          label={`${user.clam_total || 0} 🥟`}
+          label={`${user.clam_total || 0} 🧇`}
           size="small"
           sx={{
             position: 'absolute',
@@ -1038,7 +1038,7 @@ const ChoreWidget = ({ refreshNonce = 0, hiddenControls = [] }) => {
             {schedule.title}
             {schedule.clam_value > 0 && (
               <Chip
-                label={`${schedule.clam_value} 🥟`}
+                label={`${schedule.clam_value} 🧇`}
                 size="small"
                 sx={{ ml: 1, bgcolor: 'var(--accent)', color: 'white' }}
               />
@@ -1178,7 +1178,7 @@ const ChoreWidget = ({ refreshNonce = 0, hiddenControls = [] }) => {
               sx={{ minWidth: 'auto', px: 1 }}
               title={showBonusChores ? t('chores:bonus.hide') : t('chores:bonus.show')}
             >
-              🥟
+              🧇
             </Button>
             <Button
               onClick={() => setSoundEnabled(!soundEnabled)}
@@ -1340,7 +1340,7 @@ const ChoreWidget = ({ refreshNonce = 0, hiddenControls = [] }) => {
                         <Typography variant="subtitle2">
                           {schedule.title}
                           <Chip
-                            label={`${schedule.clam_value} 🥟`}
+                            label={`${schedule.clam_value} 🧇`}
                             size="small"
                             sx={{ ml: 1, bgcolor: 'var(--accent)', color: 'white' }}
                           />
@@ -1414,7 +1414,7 @@ const ChoreWidget = ({ refreshNonce = 0, hiddenControls = [] }) => {
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                       <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{offer.name}</Typography>
-                      <Chip label={`${offer.clam_cost} 🥟`} sx={{ bgcolor: 'var(--accent)', color: 'white', fontWeight: 'bold' }} />
+                      <Chip label={`${offer.clam_cost} 🧇`} sx={{ bgcolor: 'var(--accent)', color: 'white', fontWeight: 'bold' }} />
                     </Box>
                     <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                       {/* Composed from fragments rather than one interpolated
@@ -1471,7 +1471,7 @@ const ChoreWidget = ({ refreshNonce = 0, hiddenControls = [] }) => {
                       <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
                         {offer.name}{offer.repeatable ? ' 🔁' : ''}
                       </Typography>
-                      <Chip label={`${offer.clam_cost} 🥟`} sx={{ bgcolor: 'var(--accent)', color: 'white', fontWeight: 'bold' }} />
+                      <Chip label={`${offer.clam_cost} 🧇`} sx={{ bgcolor: 'var(--accent)', color: 'white', fontWeight: 'bold' }} />
                     </Box>
                     {splitDraft.offerId === offer.id ? (() => {
                       const count = splitDraft.userIds.length;
@@ -1573,7 +1573,7 @@ const ChoreWidget = ({ refreshNonce = 0, hiddenControls = [] }) => {
                     transition: 'color 0.2s ease',
                   }}
                 >
-                  {parsed > 0 ? `${quickSpend.amount} 🥟` : '0 🥟'}
+                  {parsed > 0 ? `${quickSpend.amount} 🧇` : '0 🧇'}
                 </Typography>
               );
             })()}

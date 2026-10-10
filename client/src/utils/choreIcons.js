@@ -4,7 +4,7 @@
 // (toothbrush, broom, rake, litter box, snow shovel, vegetables…) has no
 // equivalent in Material Icons; colour is far easier for a pre-reader to
 // recognise at 20px than a monochrome outline; and it matches the visual
-// language the app already speaks (🥟 clams, 🏆 celebration).
+// language the app already speaks (🧇 waffles, 🏆 celebration).
 //
 // `key` is a stable identifier used only for the translated picker label. What
 // gets persisted on the chore is the emoji character itself, so the bank can

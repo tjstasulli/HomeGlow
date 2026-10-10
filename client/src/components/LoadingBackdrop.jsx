@@ -54,7 +54,7 @@ const LoadingBackdrop = ({ open, message = 'Processing...' }) => (
               },
             }}
           >
-            🥟
+            🧇
           </Box>
         ))}
       </Box>

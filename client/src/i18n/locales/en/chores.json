@@ -74,16 +74,16 @@
     "rugby": "Rugby ball"
   },
   "widget": {
-    "title": "🥟 Daily Chores",
+    "title": "🧇 Daily Chores",
     "loading": "Loading chores...",
     "addChore": "Add Chore",
     "noChoresToday": "No chores for today",
-    "allDone": "All Done! +{{count}} 🥟",
+    "allDone": "All Done! +{{count}} 🧇",
     "completeAria": "Mark \"{{title}}\" complete",
     "uncompleteAria": "Undo \"{{title}}\"",
     "dueOn": "Due {{date}}",
     "overdue": "⚠️ Overdue",
-    "redeemClamsFor": "Redeem clams for {{name}}",
+    "redeemClamsFor": "Redeem waffles for {{name}}",
     "followupOf": "↪ after {{title}}"
   },
   "days": {
@@ -96,7 +96,7 @@
     "saturday": "Saturday"
   },
   "bonus": {
-    "heading": "🥟 Bonus Chores",
+    "heading": "🧇 Bonus Chores",
     "show": "Show Bonus Chores",
     "hide": "Hide Bonus Chores",
     "available": "Available:",
@@ -110,7 +110,7 @@
     "bonusChoreUnassigned": "Bonus Chore (Unassigned)",
     "oneTime": "One-time chore (no recurrence)",
     "selectDays": "Select Days (choose one or more):",
-    "clamValue": "🥟 Clam Value (0 for regular chore)"
+    "clamValue": "🧇 Waffle Value (0 for regular chore)"
   },
   "transfer": {
     "menuItem": "Transfer chore",
@@ -118,7 +118,7 @@
     "alreadyFinished": "They already finished today's chores and earned the daily reward.",
     "revokeAndAssign": "Revoke current reward and assign",
     "keepAndAssign": "Keep current reward and assign",
-    "bonusWhenCompleted": "🥟 Bonus when completed",
+    "bonusWhenCompleted": "🧇 Bonus when completed",
     "confirm": "Transfer"
   },
   "snooze": {
@@ -138,7 +138,7 @@
     "onTheShelf": "On the shelf",
     "requestedByLabel": "Requested by",
     "splittingWithLabel": "— splitting with",
-    "eachShareSuffix": "({{share}} 🥟 each)",
+    "eachShareSuffix": "({{share}} 🧇 each)",
     "approve": "Approve",
     "decline": "Decline",
     "cancelRequest": "Cancel request",
@@ -147,18 +147,18 @@
     "splittingBetween": "Splitting between:",
     "requestSplit": "Request split",
     "pickTwoKids": "Pick at least 2 kids",
-    "eachShare": "{{share}} 🥟 each",
-    "eachShareDiscounted": "{{share}} 🥟 each ({{discounted}} 🥟 discounted)"
+    "eachShare": "{{share}} 🧇 each",
+    "eachShareDiscounted": "{{share}} 🧇 each ({{discounted}} 🧇 discounted)"
   },
   "quickSpend": {
-    "title": "🥟 Redeem clams — {{name}}",
+    "title": "🧇 Redeem waffles — {{name}}",
     "balanceLabel": "Balance:",
-    "clamCount": "{{count}} clams",
-    "balanceHint": ". Record clams spent outside the store (e.g. a toy bought while out).",
+    "clamCount": "{{count}} waffles",
+    "balanceHint": ". Record waffles spent outside the store (e.g. a toy bought while out).",
     "whatFor": "What for? (optional)",
     "whatForPlaceholder": "Toy store",
-    "confirm": "Redeem Clams",
-    "failed": "Could not redeem clams."
+    "confirm": "Redeem Waffles",
+    "failed": "Could not redeem waffles."
   },
   "celebration": {
     "redeemedAPrize": "{{name}} redeemed a prize!"
@@ -174,10 +174,10 @@
   "schedules": {
     "definitionsHeading": "Chore Definitions",
     "newChore": "New Chore",
-    "definitionsHelp": "Chore definitions hold the title, description, and clam value. Add schedules below to assign them to users with a recurrence pattern.",
+    "definitionsHelp": "Chore definitions hold the title, description, and waffle value. Add schedules below to assign them to users with a recurrence pattern.",
     "noChores": "No chores defined yet.",
     "noDescription": "No description",
-    "clams": "Clams",
+    "clams": "Waffles",
     "schedulesColumn": "Schedules",
     "editChore": "Edit chore",
     "deleteChoreAndSchedules": "Delete chore and all its schedules",
@@ -200,7 +200,7 @@
     "visible": "Visible",
     "duplicate": "Duplicate",
     "unknownUser": "User #{{id}}",
-    "clamValue": "Clam Value",
+    "clamValue": "Waffle Value",
     "deleteChore": "Delete Chore",
     "unassignedBonusChore": "Unassigned (Bonus chore)",
     "oneTimeTask": "One-time task (no recurrence)",

@@ -74,16 +74,16 @@
     "rugby": "Balón de rugby"
   },
   "widget": {
-    "title": "🥟 Tareas del día",
+    "title": "🧇 Tareas del día",
     "loading": "Cargando tareas...",
     "addChore": "Añadir tarea",
     "noChoresToday": "No hay tareas para hoy",
-    "allDone": "¡Todo hecho! +{{count}} 🥟",
+    "allDone": "¡Todo hecho! +{{count}} 🧇",
     "completeAria": "Marcar «{{title}}» como completada",
     "uncompleteAria": "Deshacer «{{title}}»",
     "dueOn": "Para el {{date}}",
     "overdue": "⚠️ Atrasada",
-    "redeemClamsFor": "Canjear almejas de {{name}}",
+    "redeemClamsFor": "Canjear gofres de {{name}}",
     "followupOf": "↪ después de {{title}}"
   },
   "days": {
@@ -96,7 +96,7 @@
     "saturday": "Sábado"
   },
   "bonus": {
-    "heading": "🥟 Tareas extra",
+    "heading": "🧇 Tareas extra",
     "show": "Mostrar tareas extra",
     "hide": "Ocultar tareas extra",
     "available": "Disponibles:",
@@ -110,7 +110,7 @@
     "bonusChoreUnassigned": "Tarea extra (sin asignar)",
     "oneTime": "Tarea única (sin repetición)",
     "selectDays": "Elige los días (uno o más):",
-    "clamValue": "🥟 Valor en almejas (0 para tarea normal)"
+    "clamValue": "🧇 Valor en gofres (0 para tarea normal)"
   },
   "transfer": {
     "menuItem": "Transferir tarea",
@@ -118,7 +118,7 @@
     "alreadyFinished": "Ya terminó las tareas de hoy y ganó la recompensa diaria.",
     "revokeAndAssign": "Retirar la recompensa actual y asignar",
     "keepAndAssign": "Mantener la recompensa actual y asignar",
-    "bonusWhenCompleted": "🥟 Bonificación al completar",
+    "bonusWhenCompleted": "🧇 Bonificación al completar",
     "confirm": "Transferir"
   },
   "snooze": {
@@ -138,7 +138,7 @@
     "onTheShelf": "En la estantería",
     "requestedByLabel": "Pedido por",
     "splittingWithLabel": "— compartido con",
-    "eachShareSuffix": "({{share}} 🥟 cada uno)",
+    "eachShareSuffix": "({{share}} 🧇 cada uno)",
     "approve": "Aprobar",
     "decline": "Rechazar",
     "cancelRequest": "Cancelar petición",
@@ -147,18 +147,18 @@
     "splittingBetween": "Compartido entre:",
     "requestSplit": "Pedir compartido",
     "pickTwoKids": "Elige al menos 2 niños",
-    "eachShare": "{{share}} 🥟 cada uno",
-    "eachShareDiscounted": "{{share}} 🥟 cada uno ({{discounted}} 🥟 de descuento)"
+    "eachShare": "{{share}} 🧇 cada uno",
+    "eachShareDiscounted": "{{share}} 🧇 cada uno ({{discounted}} 🧇 de descuento)"
   },
   "quickSpend": {
-    "title": "🥟 Canjear almejas — {{name}}",
+    "title": "🧇 Canjear gofres — {{name}}",
     "balanceLabel": "Saldo:",
-    "clamCount": "{{count}} almejas",
-    "balanceHint": ". Registra las almejas gastadas fuera de la tienda (por ejemplo, un juguete comprado por ahí).",
+    "clamCount": "{{count}} gofres",
+    "balanceHint": ". Registra los gofres gastados fuera de la tienda (por ejemplo, un juguete comprado por ahí).",
     "whatFor": "¿Para qué? (opcional)",
     "whatForPlaceholder": "Juguetería",
-    "confirm": "Canjear almejas",
-    "failed": "No se pudieron canjear las almejas."
+    "confirm": "Canjear gofres",
+    "failed": "No se pudieron canjear los gofres."
   },
   "celebration": {
     "redeemedAPrize": "¡{{name}} canjeó un premio!"
@@ -174,10 +174,10 @@
   "schedules": {
     "definitionsHeading": "Definiciones de tareas",
     "newChore": "Nueva tarea",
-    "definitionsHelp": "Las definiciones de tareas contienen el título, la descripción y el valor en almejas. Añade programaciones abajo para asignarlas a personas con un patrón de repetición.",
+    "definitionsHelp": "Las definiciones de tareas contienen el título, la descripción y el valor en gofres. Añade programaciones abajo para asignarlas a personas con un patrón de repetición.",
     "noChores": "Aún no hay tareas definidas.",
     "noDescription": "Sin descripción",
-    "clams": "Almejas",
+    "clams": "Gofres",
     "schedulesColumn": "Programaciones",
     "editChore": "Editar tarea",
     "deleteChoreAndSchedules": "Eliminar la tarea y todas sus programaciones",
@@ -200,7 +200,7 @@
     "visible": "Visible",
     "duplicate": "Duplicar",
     "unknownUser": "Persona n.º {{id}}",
-    "clamValue": "Valor en almejas",
+    "clamValue": "Valor en gofres",
     "deleteChore": "Eliminar tarea",
     "unassignedBonusChore": "Sin asignar (tarea extra)",
     "oneTimeTask": "Tarea única (sin repetición)",

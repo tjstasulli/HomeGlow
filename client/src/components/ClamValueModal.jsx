@@ -104,7 +104,7 @@ const ClamValueModal = ({ open, onClose, onSave, user, isSaving = false }) => {
     >
       <DialogTitle>
         <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', textAlign: 'center' }}>
-          {user?.username ? `Set clams for ${user.username}` : 'Set clams'}
+          {user?.username ? `Set waffles for ${user.username}` : 'Set waffles'}
         </Typography>
       </DialogTitle>
 
@@ -120,7 +120,7 @@ const ClamValueModal = ({ open, onClose, onSave, user, isSaving = false }) => {
               fontSize: '0.85rem',
             }}
           >
-            Use keyboard or touch to enter a new clam total
+            Use keyboard or touch to enter a new waffle total
           </Typography>
 
           <Typography
@@ -133,7 +133,7 @@ const ClamValueModal = ({ open, onClose, onSave, user, isSaving = false }) => {
               color: 'var(--text)',
             }}
           >
-            {value === '' ? '0' : value} 🥟
+            {value === '' ? '0' : value} 🧇
           </Typography>
 
           <Paper

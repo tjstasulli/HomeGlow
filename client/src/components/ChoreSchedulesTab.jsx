@@ -759,7 +759,7 @@ export default function ChoreSchedulesTab({ setSaveMessage }) {
                   </TableCell>
                   <TableCell data-label={t('chores:schedules.clams')} className={c.clam_value > 0 ? undefined : 'stack-empty'}>
                     {c.clam_value > 0
-                      ? <Chip label={`${c.clam_value} 🥟`} size="small" color="primary" />
+                      ? <Chip label={`${c.clam_value} 🧇`} size="small" color="primary" />
                       : <Typography variant="caption" color="text.secondary">—</Typography>}
                   </TableCell>
                   <TableCell data-label={t('chores:schedules.schedulesColumn')}>
@@ -911,7 +911,7 @@ export default function ChoreSchedulesTab({ setSaveMessage }) {
                   </TableCell>
                   <TableCell data-label={t('chores:schedules.clams')} className={s.clam_value > 0 ? undefined : 'stack-empty'}>
                     {s.clam_value > 0
-                      ? <Chip label={`${s.clam_value} 🥟`} size="small" color="primary" />
+                      ? <Chip label={`${s.clam_value} 🧇`} size="small" color="primary" />
                       : <Typography variant="caption" color="text.secondary">—</Typography>}
                   </TableCell>
                   <TableCell data-label={t('chores:schedules.visible')}>
@@ -1179,7 +1179,7 @@ export default function ChoreSchedulesTab({ setSaveMessage }) {
                   <MenuItem key={c.id} value={c.id}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
                       <span>{c.title}</span>
-                      {c.clam_value > 0 && <Chip label={`${c.clam_value} 🥟`} size="small" sx={{ ml: 1 }} />}
+                      {c.clam_value > 0 && <Chip label={`${c.clam_value} 🧇`} size="small" sx={{ ml: 1 }} />}
                     </Box>
                   </MenuItem>
                 ))}

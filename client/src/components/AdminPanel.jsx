@@ -3357,7 +3357,7 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                       <TableCell data-label={t('admin:users.clamTotal')}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Chip
-                            label={`${user.clam_total || 0} 🥟`}
+                            label={`${user.clam_total || 0} 🧇`}
                             color="primary"
                             size="small"
                           />
@@ -3682,7 +3682,7 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                   {prizeOffers.map((offer) => (
                     <ListItem key={offer.id} sx={{ border: '1px solid var(--card-border)', borderRadius: 'var(--hg-radius-sm)', mb: 1 }}>
                       <ListItemText
-                        primary={`${offer.name} — ${offer.clam_cost} 🥟${offer.repeatable ? ' · 🔁' : ''}`}
+                        primary={`${offer.name} — ${offer.clam_cost} 🧇${offer.repeatable ? ' · 🔁' : ''}`}
                         secondary={
                           offer.status === 'requested'
                             ? t('admin:prizes.requestedBy', { name: offer.requested_by_name || t('common:state.none') })
@@ -4413,7 +4413,7 @@ const AdminPanel = ({ setWidgetSettings, onPluginsChanged, onTabsChanged, onRequ
                       <TableCell data-label={t('admin:chores.clams')}>
                         {chore.clam_value > 0 ? (
                           <Chip
-                            label={`${chore.clam_value} 🥟`}
+                            label={`${chore.clam_value} 🧇`}
                             color="primary"
                             size="small"
                           />
