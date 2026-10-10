@@ -71,6 +71,17 @@ briefly, so give it a minute or two before retrying.
 > `http://` produces `redirect_uri_mismatch`. This happens when TLS is terminated
 > by a reverse proxy in front of the container.
 
+> **If you reach HomeGlow at a bare LAN IP** (e.g. `http://192.168.1.50:3000`),
+> authorizing fails with `Error 400: invalid_request` and a message about
+> `device_id`/`device_name` being required. Google refuses any redirect URI whose
+> host is a raw IP address (`localhost` is the only exception). Fix it by editing
+> the Redirect URI field to use a hostname instead of the IP — the free
+> [nip.io](https://nip.io) service resolves `<ip-with-dashes>.nip.io` straight
+> back to that IP, so no router or DNS changes are needed: for
+> `192.168.1.50:3000` the value becomes
+> `http://192-168-1-50.nip.io:3000/api/connections/google/callback`. Register
+> that exact URL in the Cloud Console too.
+
 Plain HTTP is fine without any of this if you reach HomeGlow at
 `http://localhost:<port>` — Google exempts loopback addresses.
 
@@ -130,6 +141,7 @@ Two things do change under verification pressure, and both are worth knowing:
 | Symptom | Cause |
 |---|---|
 | `Error 400: redirect_uri_mismatch` | The Redirect URI in HomeGlow and the one registered in the Cloud Console differ. Compare them character for character, including the scheme — see §3. |
+| `Error 400: invalid_request`, mentions `device_id`/`device_name` | The Redirect URI's host is a bare LAN IP. Google refuses raw IPs; use a `nip.io` hostname instead — see §3. |
 | `Error 400: policy_enforced` | The Google account is enrolled in Advanced Protection, which refuses unverified apps. Use a different account. |
 | Photo picking fails with a 403 | The **Photos Picker API** is not enabled — see §2. Note it is a different API from the similarly named Photos Library API; the error message names the one you are missing. |
 | Connection drops every week | The OAuth consent screen is still in *Testing*. Set it to *In production*. |
